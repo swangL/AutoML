@@ -20,6 +20,8 @@ activations_dict={
 }
 num_blocks=5
 hidden_dim = 50
+
+
 class Controller(nn.Module):
     def __init__(self):
         super(Controller, self).__init__()
@@ -32,11 +34,13 @@ class Controller(nn.Module):
         self.num_tokens = [len(activations_dict)]
         for i in range(num_blocks):
             # TODO (Mads): implement variable amount of choices / help guide
-            self.num_tokens += [len(sizes_dict), len(activations_dict)]
+            self.num_tokens = self.num_tokens.append([len(sizes_dict), len(activations_dict)])
         for size in self.num_tokens:
             decoder = torch.nn.Linear(hidden_dim, size)
             self.decoders.append(decoder)
 
+
+    # You can see the forward pass as an action taken by the agent
     def forward(self, inputs, hidden, block_id):
         # unsqueeze to have correct dim for lstm
         h, c = self.lstm(inputs)#, hidden)
@@ -47,6 +51,8 @@ class Controller(nn.Module):
         # logits, hidden
         return logits.squeeze(), (h, c)
 
+
+    # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
         # default input
         inputs = torch.Tensor(1, hidden_dim)
@@ -78,3 +84,10 @@ class Controller(nn.Module):
         #child = self.create_model(activations, nodes)
         return activations, nodes
         #return logits, log_prob
+
+# Test the class here:
+test_class = True
+if test_class:
+    net = Controller()
+    act,nodes = net.sample()
+    print("Network archtecture:\n act: {}, nodes: {}".format(act,nodes))
