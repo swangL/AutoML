@@ -15,26 +15,15 @@ hidden_dim = 50
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        
+
         # Recurrent layer
         # YOUR CODE HERE!
-        self.lstm = nn.LSTM(vocab_size,hidden_size)
-        
-        # Output layer
-        self.l_out = nn.Linear(in_features=hidden_dim,
-                            out_features=vocab_size,
-                            bias=False)
-        
+        self.lstm = nn.LSTM(hidden_dim,hidden_dim)
+
     def forward(self, x):
-        # RNN returns output and last hidden state
+        # unsqueeze to have correct dim for lstm
+        x = x.unsqueeze(0)
         x, (h, c) = self.lstm(x)
-        
-        # Flatten output for feed-forward layer
-        x = x.view(-1, self.lstm.hidden_size)
-        
-        # Output layer
-        x = self.l_out(x)
-        
         return x
 
 
