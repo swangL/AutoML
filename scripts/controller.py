@@ -3,6 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+
+hidden_dim = 50
+
 #Find how to handle input
 
 #How to controlle the output
@@ -19,13 +22,13 @@ activations_dict={
     2:"sigmoid",
 }
 num_blocks=5
-hidden_dim = 50
+controller_hid=10
 class Controller(nn.Module):
     def __init__(self):
         super(Controller, self).__init__()
         # Create tokens which maps the amount of options for each layer
         # Recurrent layer
-        self.lstm = nn.LSTM(hidden_dim,hidden_dim)
+        self.lstm = nn.LSTMCell(hidden_dim,hidden_dim)
 
         #Linear layer for each of the block - decoder
         self.decoders=[]
@@ -39,7 +42,7 @@ class Controller(nn.Module):
 
     def forward(self, inputs, hidden, block_id):
         # unsqueeze to have correct dim for lstm
-        h, c = self.lstm(inputs)#, hidden)
+        h, c = self.lstm(inputs, hidden)
         logits = self.decoders[block_id](h)
         # TODO(Mads): Softmax temperature and added exploration:
         # if self.args.mode == 'train':
@@ -49,13 +52,13 @@ class Controller(nn.Module):
 
     def sample(self):
         # default input
-        inputs = torch.Tensor(1, hidden_dim)
-        hidden = torch.Tensor(1, 1, hidden_dim)
-        inputs = inputs.unsqueeze(0)
+        inputs = torch.zeros(1,hidden_dim)
+        # tuple of h and c
+        hidden = (torch.zeros(1,hidden_dim), torch.zeros(1,hidden_dim))
         activations = []
         nodes = []
-        # 1 block includes hidden and activation as such num_block*2 + 1 - 1 since we want to append Dense
-        for block_id in range(num_blocks*2):
+        # 1 block includes hidden and activation as such num_block*2 + 1 since we want to append Dense
+        for block_id in range(num_blocks*2+1):
             #handle terminate argument
             #parse last hidden using overwrite
             logits, hidden = self.forward(inputs, hidden, block_id)
@@ -74,7 +77,12 @@ class Controller(nn.Module):
                     break
                 else:
                     nodes.append(value)
-
+        print(activations)
+        print(nodes)
         #child = self.create_model(activations, nodes)
         return activations, nodes
         #return logits, log_prob
+
+
+net = Controller()
+print(net)
