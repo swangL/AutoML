@@ -26,7 +26,7 @@ hidden_dim = 50
 
 
 class Controller(nn.Module):
-    def __init__(self):
+    def __init__(self,lr):
         super(Controller, self).__init__()
         # Create tokens which maps the amount of options for each layer
         # Recurrent layer
@@ -37,11 +37,13 @@ class Controller(nn.Module):
         self.num_tokens = [len(activations_dict)]
         for i in range(num_blocks):
             # TODO (Mads): implement variable amount of choices / help guide
-            self.num_tokens = self.num_tokens.append([len(sizes_dict), len(activations_dict)])
+            # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
+            self.num_tokens += [len(sizes_dict), len(activations_dict)]
         for size in self.num_tokens:
             decoder = torch.nn.Linear(hidden_dim, size)
             self.decoders.append(decoder)
 
+        self.optimizer = optim.Adam(self.parameters(), lr = lr)
 
     # You can see the forward pass as an action taken by the agent
     def forward(self, inputs, hidden, block_id):
@@ -54,6 +56,9 @@ class Controller(nn.Module):
         # logits, hidden
         return logits.squeeze(), (h, c)
 
+    #Idea at implementere REINFORCE her?
+    def loss(self, action_probabilities, accuracy , baseline):
+        return -torch.mean(torch.mul(torch.log(action_probabilities), (accuracy-baseline)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
@@ -63,17 +68,22 @@ class Controller(nn.Module):
         hidden = (torch.zeros(1,hidden_dim), torch.zeros(1,hidden_dim))
         activations = []
         nodes = []
+        prob_list = []
         # 1 block includes hidden and activation as such num_block*2 + 1 since we want to append Dense
+        
         for block_id in range(num_blocks*2+1):
             #handle terminate argument
             #parse last hidden using overwrite
             logits, hidden = self.forward(inputs, hidden, block_id)
             # use logits to make choice
+     
             probs = F.softmax(logits, dim=-1)
             # we need log prob for reward
             log_prob = F.log_softmax(logits, dim=-1)
+            
             # draw from probs
             action = probs.multinomial(num_samples=1).data
+            prob_list.append(probs.gather(0,action))
             # determine whether activation or hidden
             if block_id%2==0:
                 activations.append(activations_dict[int(action)])
@@ -83,15 +93,24 @@ class Controller(nn.Module):
                     break
                 else:
                     nodes.append(value)
-        print(activations)
-        print(nodes)
         #child = self.create_model(activations, nodes)
-        return activations, nodes
+        #pigerne regner nok med at vi giver en streng i form [node,act,node,act,...,node ]. Lige nu kan vi returnere [act,node,act,node], det skal vi bare lige havde afklaret mandag. Nu bygger jeg i hverfald rollout/archetectur return som [act,node,act,....,act]
+        arch = []
+        i=0       
+        for i in range(len(nodes)): 
+            arch += [activations[i], nodes[i]] 
+        arch += [activations[i+1]] if i>0 else [activations[i]]
+        prob_list = torch.cat(prob_list,dim=0)
+        #return activations, nodes
+        return arch, prob_list
         #return logits, log_prob
 
 # Test the class here:
-test_class = True
+test_class = False
 if test_class:
     net = Controller()
-    act,nodes = net.sample()
-    print("Network archtecture:\n act: {}, nodes: {}".format(act,nodes))
+    arch,l = net.sample()
+    print("Network archtecture:")
+    print(arch)
+    print()
+    print("The prob for each pick: ", l)
