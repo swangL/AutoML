@@ -13,9 +13,14 @@ hidden_dim = 50
 #args implementation
 sizes_dict={
     0:"term",
-    1:"Dense(1)",
-    2:"Dense(2)",
+    1:2,
+    2:4,
+    3:8,
+    4:16,
+    5:32,
+    6:64,
 }
+
 activations_dict={
     0:"relu",
     1:"tanh",
@@ -97,9 +102,11 @@ class Controller(nn.Module):
         #pigerne regner nok med at vi giver en streng i form [node,act,node,act,...,node ]. Lige nu kan vi returnere [act,node,act,node], det skal vi bare lige havde afklaret mandag. Nu bygger jeg i hverfald rollout/archetectur return som [act,node,act,....,act]
         arch = []
         i=0       
+        
         for i in range(len(nodes)): 
             arch += [activations[i], nodes[i]] 
         arch += [activations[i+1]] if i>0 else [activations[i]]
+        
         prob_list = torch.cat(prob_list,dim=0)
         #return activations, nodes
         return arch, prob_list
