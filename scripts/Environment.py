@@ -13,13 +13,6 @@ import sklearn.datasets
 import math
 
 
-num_epochs = 50
-train_batch_size = 50
-val_batch_size = 50
-opt = "Adam"
-learning_rate = 0.01
-
-
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     correct_prediction = torch.eq(torch.max(ys, 1)[1], torch.max(ts, 1)[1])
@@ -83,11 +76,11 @@ class Train_model():
         self.X_test = 0
         self.y_test = 0
         
-    def generate_data(self, num_samples):
+    def generate_data(self, num_samples, noise_val):
         # num_samples should be divisable by 5
 
         # Import dataset
-        X, y = make_moons(n_samples=num_samples, noise=0.2)
+        X, y = make_moons(n_samples=num_samples, noise=noise_val)
 
         # Define interval used to split data into 
         # train, val and test
@@ -114,24 +107,54 @@ class Train_model():
         self.y_test = Variable(torch.from_numpy(onehot(self.y_test,2))).float()
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
+        plot_train_losses = []
+        plot_train_accuracies = []
+        plot_val_losses = []
+        plot_val_accuracies = []
+
+        divider = 10
+        divide_data = False
+        
+        if divide_data:
+            for i in range(int(len(val_losses) / divider)):
+                plot_val_losses.append(val_losses[i*divider])
+                plot_val_accuracies.append(val_accuracies[i*divider])
+
+            
+            for i in range(int(len(losses) / divider)):
+                plot_train_losses.append(losses[i*divider])
+                plot_train_accuracies.append(accuracies[i*divider])
+                
+            val_epochs = int(len(val_losses) / divider)
+            train_epochs = int(len(losses) / divider)
+
+        else: 
+
+            plot_train_losses = losses
+            plot_train_accuracies = accuracies
+            plot_val_losses = val_losses
+            plot_val_accuracies = val_accuracies
+            
+            val_epochs = len(val_losses)
+            train_epochs = len(losses)
+
         plt.figure()
-        epoch = np.arange(len(losses))
-        plt.plot(epoch, losses, 'r', label='Train Loss')
-        plt.plot(epoch, val_losses, 'b', label='Val Loss')
+        plt.plot(range(train_epochs), plot_train_losses, 'r', label='Train Loss')
+        plt.plot(range(val_epochs), plot_val_losses, 'b', label='Val Loss')
         plt.legend()
         plt.xlabel('Updates')
         plt.ylabel('Loss')
         plt.show()
 
         plt.figure()
-        plt.plot(epoch, accuracies, 'r', label='Train Acc')
-        plt.plot(epoch, val_accuracies, 'b', label='Val Acc')
+        plt.plot(range(train_epochs), plot_train_accuracies, 'r', label='Train Acc')
+        plt.plot(range(val_epochs), plot_val_accuracies, 'b', label='Val Acc')
         plt.legend()
         plt.xlabel('Updates')
         plt.ylabel('Accuracy')
         plt.show()
 
-    def train(self,net):
+    def train(self,net,train_batch_size,val_batch_size):
 
         if opt is "Adam":
             optimizer = optim.Adam(net.parameters(), lr=learning_rate)
@@ -145,15 +168,23 @@ class Train_model():
         val_accuracies = []
         val_losses = []
 
+        train_loader = math.ceil(len(self.X_train)/train_batch_size)
+        val_loader = math.ceil(len(self.X_val)/val_batch_size)
+
+        # Variables used for EarlyStopping
+        es_old_val = 0
+        es_new_val = 0
+        es_range = 0.001
+        es_limit = 30
+        counter = 0
+
         for e in range(num_epochs):
             
-            train_loader = math.ceil(len(self.X_train)/train_batch_size)
-            val_loader = math.ceil(len(self.X_val)/val_batch_size)
-
             # --------------- train the model --------------- #
             for batch in range(train_loader):
 
                 optimizer.zero_grad()
+                
                 if batch == (train_loader - 1):
                     slce = slice(batch * train_batch_size, -1)
                 else:
@@ -186,38 +217,51 @@ class Train_model():
                 val_losses.append(val_loss.data.numpy())
                 val_accuracies.append(val_acc.data.numpy())
 
+            # EarlyStopping
+            if e == 0:
+                es_old_val = float(val_acc)
+            else:
+                es_new_val = float(val_acc)
 
-            #if e % 10 == 0:
-            #    print("Epoch %i: " 
-            #    "Train Accuracy: %0.3f"
-            #    "\tVal Accuracy: %0.3f"  
-            #    "\tTrain Loss: %0.3f" 
-            #    "\tVal Loss: %0.3f" 
-            #    % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+                if abs(es_old_val - es_new_val) <= es_range:
+                    counter += 1
+                    if counter == es_limit:
+                        break
+
+                else:
+                    counter = 0
+                    es_old_val = float(val_acc)
+                
+
+            if e % 10 == 0:
+                print("Epoch %i: " 
+                "Train Accuracy: %0.3f"
+                "\tVal Accuracy: %0.3f"  
+                "\tTrain Loss: %0.3f" 
+                "\tVal Loss: %0.3f" 
+                % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+
+            
 
         # --------------- test the model --------------- #
         test_preds = net(self.X_test)
         test_loss = cross_entropy(test_preds, self.y_test)
         test_acc = accuracy(test_preds, self.y_test)
 
-        #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
-        
+        self.plotter(accuracies, losses, val_accuracies, val_losses) 
+        #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))        
 
-        
-        
-
-        
         return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
 
 
-test = False
+test = True
 if test:
     # test_string = get_function_from_LSTM
     test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
 
     # Generate 
     train_m = Train_model()
-    train_m.generate_data(300)
+    train_m.generate_data(1000, 0.2)
 
     # Defining Network
     layers = []
@@ -228,10 +272,17 @@ if test:
     # Set variables used to train neural network
     # If we do not wish to use batches, set batch_size equals to the length
     # of the dataset 
-    num_epochs = 200
-    train_batch_size = 50
-    val_batch_size = 50
+    num_epochs = 1000
+    train_batch_size = len(train_m.X_train)
+    val_batch_size = len(train_m.X_val)
     opt = "Adam"
-    learning_rate = 0.01
+    learning_rate = 0.01    
 
-    train_accuracy, val_accuracy, test_accuracy, train_loss, val_loss, test_loss = train_m.train()
+    train_accuracy, val_accuracy, test_accuracy, train_loss, val_loss, test_loss = train_m.train(net, train_batch_size, val_batch_size)
+
+if not test:
+    num_epochs = 1000
+    opt = "Adam"
+    #train_batch_size = len(train_m.X_train)
+    #val_batch_size = len(train_m.X_val)
+    learning_rate = 0.01
