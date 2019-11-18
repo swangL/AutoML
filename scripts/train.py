@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from controller import Controller as ct
 import matplotlib.pyplot as plt
-# from environemt import * <-- when we get the girls
+from Environment import *
 
 
 def trainer(epochs,lr):
@@ -13,12 +13,34 @@ def trainer(epochs,lr):
     #return the porbalility of picking each action
     accuracy_hist = []
     loss_hist = []
+    train_m = Train_model()
+    train_m.generate_data(1000)
+
     for e in range(epochs):  
+        print("{}/{}".format(e+1,epochs))
         arch,probs = cont.sample()
         #Notice here we also get the probability of the termination!
     
         #TODO train the archetecture in the environment, and get the loss and accuracy as an return value
-        accuracy = torch.tensor(0.5)
+        
+        # Defining Network
+        layers = []
+        network = Net(arch, 2, layers)
+        net = nn.Sequential(*layers)
+        print(net)
+
+        # Set variables used to train neural network
+        # If we do not wish to use batches, set batch_size equals to the length
+        # of the dataset 
+       # num_epochs = 200
+       # train_batch_size = 50
+       # val_batch_size = 50
+       # opt = "Adam"
+       # learning_rate = 0.01
+
+        _, accuracy, _, _, _, _ = train_m.train(net)
+
+        accuracy = torch.tensor(accuracy)
         accuracy_hist.append(accuracy)
 
         #Here we apply REINFORCE on the controller we optimize in respect to 
@@ -40,13 +62,21 @@ def trainer(epochs,lr):
         loss_hist.append(float(loss.data))
         loss.backward()
         cont.optimizer.step()
+
     return accuracy_hist, loss_hist
 
 
 def main():
-    epochs = 50
+    epochs = 100
     lr = 0.001
     acc_his, loss_his = trainer(epochs,lr)
+
+    plt.figure()
+    plt.plot(range(epochs), acc_his, 'r', label='Val Acc')
+    plt.legend()
+    plt.xlabel('Updates')
+    plt.ylabel('Accuracy')
+    plt.show()
 
 if __name__ == "__main__":
     main()

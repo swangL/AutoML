@@ -4,8 +4,7 @@ import torch.nn as nn
 from sklearn.datasets import make_moons
 import torch.optim as optim
 from torch.autograd import Variable
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.metrics import accuracy_score
 import torch.utils.data
 import matplotlib
@@ -13,10 +12,19 @@ import matplotlib.pyplot as plt
 import sklearn.datasets
 import math
 
+
+num_epochs = 50
+train_batch_size = 50
+val_batch_size = 50
+opt = "Adam"
+learning_rate = 0.01
+
+
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     correct_prediction = torch.eq(torch.max(ys, 1)[1], torch.max(ts, 1)[1])
     # averaging the one-hot encoded vector
+    #print("Accuracy: ",torch.mean(correct_prediction.float()))
     return torch.mean(correct_prediction.float())
 
 def onehot(t, num_classes):
@@ -61,9 +69,9 @@ class Net(nn.Module):
             
         # Last layer with output 2 representing the two classes
         layers.append(nn.Linear(num_input, 2))
-        layers.append(nn.Softmax())
+        layers.append(nn.Softmax(dim=0))
         
-        print('layers', layers)
+        #print('layers', layers)
 
 class Train_model():
 
@@ -79,7 +87,7 @@ class Train_model():
         # num_samples should be divisable by 5
 
         # Import dataset
-        X, y = make_moons(n_samples=num_samples, noise=0.1)
+        X, y = make_moons(n_samples=num_samples, noise=0.2)
 
         # Define interval used to split data into 
         # train, val and test
@@ -123,7 +131,7 @@ class Train_model():
         plt.ylabel('Accuracy')
         plt.show()
 
-    def train(self):
+    def train(self,net):
 
         if opt is "Adam":
             optimizer = optim.Adam(net.parameters(), lr=learning_rate)
@@ -138,7 +146,7 @@ class Train_model():
         val_losses = []
 
         for e in range(num_epochs):
-
+            
             train_loader = math.ceil(len(self.X_train)/train_batch_size)
             val_loader = math.ceil(len(self.X_val)/val_batch_size)
 
@@ -178,43 +186,52 @@ class Train_model():
                 val_losses.append(val_loss.data.numpy())
                 val_accuracies.append(val_acc.data.numpy())
 
-            if e % 10 == 0:
-                print("Epoch %i: " 
-                "Train Accuracy: %0.3f"
-                "\tVal Accuracy: %0.3f"  
-                "\tTrain Loss: %0.3f" 
-                "\tVal Loss: %0.3f" 
-                % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+
+            #if e % 10 == 0:
+            #    print("Epoch %i: " 
+            #    "Train Accuracy: %0.3f"
+            #    "\tVal Accuracy: %0.3f"  
+            #    "\tTrain Loss: %0.3f" 
+            #    "\tVal Loss: %0.3f" 
+            #    % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
 
         # --------------- test the model --------------- #
         test_preds = net(self.X_test)
         test_loss = cross_entropy(test_preds, self.y_test)
         test_acc = accuracy(test_preds, self.y_test)
 
-        print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
+        #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
+        
 
+        
+        
+
+        
         return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
 
-# test_string = get_function_from_LSTM
-test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
 
-# Generate 
-train_m = Train_model()
-train_m.generate_data(300)
+test = False
+if test:
+    # test_string = get_function_from_LSTM
+    test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
 
-# Defining Network
-layers = []
-network = Net(test_string, 2, layers)
-net = nn.Sequential(*layers)
-print(net)
+    # Generate 
+    train_m = Train_model()
+    train_m.generate_data(300)
 
-# Set variables used to train neural network
-# If we do not wish to use batches, set batch_size equals to the length
-# of the dataset 
-num_epochs = 200
-train_batch_size = 50
-val_batch_size = 50
-opt = "Adam"
-learning_rate = 0.01
+    # Defining Network
+    layers = []
+    network = Net(test_string, 2, layers)
+    net = nn.Sequential(*layers)
+    print(net)
 
-train_accuracy, val_accuracy, test_accuracy, train_loss, val_loss, test_loss = train_m.train()
+    # Set variables used to train neural network
+    # If we do not wish to use batches, set batch_size equals to the length
+    # of the dataset 
+    num_epochs = 200
+    train_batch_size = 50
+    val_batch_size = 50
+    opt = "Adam"
+    learning_rate = 0.01
+
+    train_accuracy, val_accuracy, test_accuracy, train_loss, val_loss, test_loss = train_m.train()
