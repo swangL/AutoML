@@ -59,8 +59,8 @@ class Controller(nn.Module):
         return logits.squeeze(), (h, c)
 
     #REINFORCE HERE v v v v v v v
-    def loss(self, action_probabilities, accuracy , baseline):
-        return -torch.mean(torch.mul(torch.log(action_probabilities), (accuracy-baseline)))
+    def loss(self, log_prob, accuracy , baseline):
+        return -torch.mean(torch.mul(log_prob, (accuracy-baseline)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
@@ -70,6 +70,7 @@ class Controller(nn.Module):
         hidden = (torch.zeros(1,hidden_dim), torch.zeros(1,hidden_dim))
         arch = []
         prob_list = []
+        logProb_list = []
         # 1 block includes hidden and activation as such num_block*2 + 1 since we want to append Dense
         
         for block_id in range(1,num_blocks*2+1):
@@ -80,11 +81,12 @@ class Controller(nn.Module):
 
             probs = F.softmax(logits, dim=-1)
             log_prob = F.log_softmax(logits, dim=-1)
-            
+            print("Probability of taking x")
+            print(probs)
             # draw from probs
             action = probs.multinomial(num_samples=1).data
             #append to return list which is used as the probs
-            prob_list.append(probs.gather(0,action))
+            logProb_list.append(log_prob.gather(0,action))
             # determine whether activation or hidden
             if block_id%2==0:
                 arch.append(activations_dict[int(action)])
@@ -97,9 +99,9 @@ class Controller(nn.Module):
         #child = self.create_model(activations, nodes)
         #pigerne regner nok med at vi giver en streng i form [node,act,node,act,...,node ]. Lige nu kan vi returnere [act,node,act,node], det skal vi bare lige havde afklaret mandag. Nu bygger jeg i hverfald rollout/archetectur return som [act,node,act,....,act]
         
-        prob_list = torch.cat(prob_list,dim=0)
+        logProb_list = torch.cat(logProb_list,dim=0)
         #return activations, nodes
-        return arch, prob_list
+        return arch, logProb_list
         #return logits, log_prob
 
 # Test the class here:
