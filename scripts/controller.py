@@ -61,7 +61,7 @@ class Controller(nn.Module):
         # logits, hidden
         return logits.squeeze(), (h, c)
 
-    #Idea at implementere REINFORCE her?
+    #REINFORCE HERE v v v v v v v
     def loss(self, action_probabilities, accuracy , baseline):
         return -torch.mean(torch.mul(torch.log(action_probabilities), (accuracy-baseline)))
 
