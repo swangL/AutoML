@@ -13,8 +13,22 @@ def trainer(epochs,lr):
     #return the porbalility of picking each action
     accuracy_hist = []
     loss_hist = []
-    train_m = Train_model()
-    train_m.generate_data(1000)
+    
+    data_set = "MNIST"
+    plot = False
+    
+    params = {
+        "num_epochs": 1000,
+        "opt": "Adam",
+        "lr": 0.01
+    }
+
+    train_m = Train_model(params)
+
+    if data_set is "MOONS":
+        train_m.moon_data(num_samples=1000, noise=0.2)
+    elif data_set is "MNIST":
+        train_m.mnist_data(num_classes=10)
 
     for e in range(epochs):  
         print("{}/{}".format(e+1,epochs))
@@ -25,7 +39,11 @@ def trainer(epochs,lr):
         
         # Defining Network
         layers = []
-        network = Net(arch, 2, layers)
+        if data_set is "MOONS":
+            network = Net_MOONS(string=arch, in_features=2, num_classes=2, layers=layers)
+        elif data_set is "MNIST":
+            network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
+
         net = nn.Sequential(*layers)
         print(net)
 
@@ -38,7 +56,7 @@ def trainer(epochs,lr):
        # opt = "Adam"
        # learning_rate = 0.01
 
-        _, accuracy, _, _, _, _ = train_m.train(net)
+        accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
 
         accuracy = torch.tensor(accuracy)
         accuracy_hist.append(accuracy)
@@ -67,8 +85,8 @@ def trainer(epochs,lr):
 
 
 def main():
-    epochs = 100
-    lr = 0.001
+    epochs = 10
+    lr = 0.01
     acc_his, loss_his = trainer(epochs,lr)
 
     plt.figure()
@@ -76,6 +94,12 @@ def main():
     plt.legend()
     plt.xlabel('Updates')
     plt.ylabel('Accuracy')
+
+    plt.figure()
+    plt.plot(range(epochs), loss_his, 'b', label='Val Loss')
+    plt.legend()
+    plt.xlabel('Updates')
+    plt.ylabel('Loss')
     plt.show()
 
 if __name__ == "__main__":

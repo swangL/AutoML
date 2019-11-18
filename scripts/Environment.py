@@ -33,13 +33,13 @@ def cross_entropy(ys, ts):
     return torch.mean(cross_entropy)
     
 # Network
-class Net(nn.Module):
+class Net_MOONS(nn.Module):
     
     # Constructor to build network
-    def __init__(self, string, in_features, layers):
+    def __init__(self, string, in_features, num_classes, layers):
         
         # Inherit from parent constructor
-        super(Net, self).__init__()
+        super(Net_MOONS, self).__init__()
         
         num_input = in_features
 
@@ -61,22 +61,54 @@ class Net(nn.Module):
                 num_input = s_int
             
         # Last layer with output 2 representing the two classes
-        layers.append(nn.Linear(num_input, 2))
+        layers.append(nn.Linear(num_input, num_classes))
+        layers.append(nn.Softmax(dim=0))
+
+# Network
+class Net_MNIST(nn.Module):
+    
+    # Constructor to build network
+    def __init__(self, string, in_features, num_classes, layers):
+        
+        # Inherit from parent constructor
+        super(Net_MNIST, self).__init__()
+        
+        num_input = in_features
+
+        # Break down string sent from Controller
+        # and add layers in network based on this
+        for s in string:
+
+            # If element in string is not a number (i.e. an activation function)
+            if s is 'ReLU':
+                layers.append(nn.ReLU())
+            elif s is 'Tanh':
+                layers.append(nn.Tanh())
+            elif s is 'Sigmoid':
+                layers.append(nn.Sigmoid())
+            # If element in string is a number (i.e. number of neurons)
+            else:
+                s_int = int(s)
+                layers.append(nn.Linear(num_input, s_int))
+                num_input = s_int
+            
+        # Last layer with output 2 representing the two classes
+        layers.append(nn.Linear(num_input, num_classes))
         layers.append(nn.Softmax(dim=0))
         
-        #print('layers', layers)
 
 class Train_model():
 
-    def __init__(self):
+    def __init__(self, params):
         self.X_train = 0
         self.y_train = 0
         self.X_val = 0
         self.y_val = 0
         self.X_test = 0
         self.y_test = 0
+        self.params = params
         
-    def generate_data(self, num_samples, noise_val):
+    def moon_data(self, num_samples, noise_val):
         # num_samples should be divisable by 5
 
         # Import dataset
@@ -106,11 +138,38 @@ class Train_model():
         self.X_test = Variable(torch.from_numpy(self.X_test))
         self.y_test = Variable(torch.from_numpy(onehot(self.y_test,2))).float()
 
+    def mnist_data(self, num_classes):
+        
+        # Import dataset
+        data = np.load('mnist.npz')
+
+        # Define interval used to split data into 
+        # train, val and test
+        interval_1 = 1000
+        interval_2 = 500
+
+        # Define train, validation, and test sets
+        self.X_train = data['X_train'][:interval_1].astype('float32')
+        self.X_val = data['X_valid'][:interval_2].astype('float32')
+        self.X_test = data['X_test'][:interval_2].astype('float32')
+
+        # and labels
+        self.y_train = data['y_train'][:interval_1].astype('int32')
+        self.y_val = data['y_valid'][:interval_2].astype('int32')
+        self.y_test = data['y_test'][:interval_2].astype('int32')
+
+        self.X_train = Variable(torch.from_numpy(self.X_train))
+        self.y_train = Variable(torch.from_numpy(onehot(self.y_train,num_classes))).float()
+
+        self.X_val = Variable(torch.from_numpy(self.X_val))
+        self.y_val = Variable(torch.from_numpy(onehot(self.y_val,num_classes))).float()
+
+        self.X_test = Variable(torch.from_numpy(self.X_test))
+        self.y_test = Variable(torch.from_numpy(onehot(self.y_test,num_classes))).float()
+
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
-        plot_train_losses = []
-        plot_train_accuracies = []
-        plot_val_losses = []
-        plot_val_accuracies = []
+        
+        plot_train_losses, plot_val_losses, plot_train_accuracies, plot_val_accuracies = [], [], [], []
 
         divider = 10
         divide_data = False
@@ -144,7 +203,6 @@ class Train_model():
         plt.legend()
         plt.xlabel('Updates')
         plt.ylabel('Loss')
-        plt.show()
 
         plt.figure()
         plt.plot(range(train_epochs), plot_train_accuracies, 'r', label='Train Acc')
@@ -154,31 +212,27 @@ class Train_model():
         plt.ylabel('Accuracy')
         plt.show()
 
-    def train(self,net,train_batch_size,val_batch_size):
+    def train(self,net,train_batch_size,val_batch_size, plot):
 
-        if opt is "Adam":
-            optimizer = optim.Adam(net.parameters(), lr=learning_rate)
+        if self.params["opt"] is "Adam":
+            optimizer = optim.Adam(net.parameters(), lr=self.params["lr"])
         
-        elif opt is "SGD":
-            optimizer = optim.SGD(net.parameters(), lr=learning_rate)
+        elif self.params["opt"] is "SGD":
+            optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
-        accuracies = []
-        losses = []
+        early_stop = False
 
-        val_accuracies = []
-        val_losses = []
+        accuracies, losses, val_accuracies, val_losses = [], [], [], []
 
         train_loader = math.ceil(len(self.X_train)/train_batch_size)
         val_loader = math.ceil(len(self.X_val)/val_batch_size)
 
         # Variables used for EarlyStopping
-        es_old_val = 0
-        es_new_val = 0
+        es_old_val, es_new_val, counter = 0, 0, 0
         es_range = 0.001
         es_limit = 30
-        counter = 0
 
-        for e in range(num_epochs):
+        for e in range(self.params["num_epochs"]):
             
             # --------------- train the model --------------- #
             for batch in range(train_loader):
@@ -189,7 +243,6 @@ class Train_model():
                     slce = slice(batch * train_batch_size, -1)
                 else:
                     slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
-
 
                 preds = net(self.X_train[slce])
                 loss = cross_entropy(preds, self.y_train[slce])
@@ -203,7 +256,7 @@ class Train_model():
             
             # --------------- validate the model --------------- #
             for batch in range(val_loader):
-                
+        
                 if batch == (val_loader - 1):
                     val_slce = slice(batch * val_batch_size, -1)
                 else:
@@ -217,72 +270,77 @@ class Train_model():
                 val_losses.append(val_loss.data.numpy())
                 val_accuracies.append(val_acc.data.numpy())
 
-            # EarlyStopping
-            if e == 0:
-                es_old_val = float(val_acc)
-            else:
-                es_new_val = float(val_acc)
-
-                if abs(es_old_val - es_new_val) <= es_range:
-                    counter += 1
-                    if counter == es_limit:
-                        break
-
-                else:
-                    counter = 0
+            if early_stop:
+                # EarlyStopping
+                if e == 0:
                     es_old_val = float(val_acc)
-                
+                else:
+                    es_new_val = float(val_acc)
 
+                    if abs(es_old_val - es_new_val) <= es_range:
+                        counter += 1
+                        if counter == es_limit:
+                            break
+                    else:
+                        counter = 0
+                        es_old_val = float(val_acc)
+                
             if e % 10 == 0:
                 print("Epoch %i: " 
-                "Train Accuracy: %0.3f"
-                "\tVal Accuracy: %0.3f"  
-                "\tTrain Loss: %0.3f" 
-                "\tVal Loss: %0.3f" 
+                "TrainAcc: %0.2f"
+                "\tValAcc: %0.2f"  
+                "\tTrainLoss: %0.2f" 
+                "\tValLoss: %0.2f" 
                 % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
-
-            
 
         # --------------- test the model --------------- #
         test_preds = net(self.X_test)
         test_loss = cross_entropy(test_preds, self.y_test)
         test_acc = accuracy(test_preds, self.y_test)
 
-        self.plotter(accuracies, losses, val_accuracies, val_losses) 
+        if plot:
+            self.plotter(accuracies, losses, val_accuracies, val_losses) 
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))        
 
-        return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
+        # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
+        return val_accuracies[-1]
 
 
-test = True
+test = False
+
+'''
+num_epochs = 1000
+learning_rate = 0.01    
+opt = "Adam"
+'''
+
 if test:
     # test_string = get_function_from_LSTM
     test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
+    data_set = "MOONS"
+    train_m = Train_model(params)
+    layers = []
 
     # Generate 
-    train_m = Train_model()
-    train_m.generate_data(1000, 0.2)
+    if data_set is "MOONS":
+        train_m.moon_data(1000, 0.2)
+        network = Net_MOONS(string=test_string, in_features=2, num_classes=2, layers=layers)
+    if data_set is "MNIST":
+        train_m.mnist_data(10)
+        network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
 
     # Defining Network
-    layers = []
-    network = Net(test_string, 2, layers)
     net = nn.Sequential(*layers)
     print(net)
 
     # Set variables used to train neural network
     # If we do not wish to use batches, set batch_size equals to the length
     # of the dataset 
-    num_epochs = 1000
+    
     train_batch_size = len(train_m.X_train)
     val_batch_size = len(train_m.X_val)
-    opt = "Adam"
-    learning_rate = 0.01    
 
-    train_accuracy, val_accuracy, test_accuracy, train_loss, val_loss, test_loss = train_m.train(net, train_batch_size, val_batch_size)
+    plot = True
 
-if not test:
-    num_epochs = 1000
-    opt = "Adam"
-    #train_batch_size = len(train_m.X_train)
-    #val_batch_size = len(train_m.X_val)
-    learning_rate = 0.01
+    val_accuracy = train_m.train(net, train_batch_size, val_batch_size, plot)
+
