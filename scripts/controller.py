@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.autograd import Variable
 
 #Find how to handle input
 
@@ -23,7 +24,7 @@ activations_dict={
     1:"Tanh",
     2:"Sigmoid",
 }
-num_blocks=5
+num_blocks=12
 hidden_dim = 50
 
 
@@ -60,12 +61,11 @@ class Controller(nn.Module):
 
     #REINFORCE HERE v v v v v v v
     def loss(self, log_prob, accuracy , baseline):
-        return -torch.mean(torch.mul(log_prob, (accuracy-baseline)))
+        R = torch.ones(1)*accuracy
+        return -torch.mean(torch.mul(log_prob, Variable(R)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
-        # default input
-        inputs = torch.zeros(1,hidden_dim)
         # tuple of h and c
         hidden = (torch.zeros(1,hidden_dim), torch.zeros(1,hidden_dim))
         arch = []
@@ -76,13 +76,11 @@ class Controller(nn.Module):
         for block_id in range(1,num_blocks*2+1):
             #handle terminate argument
             #parse last hidden using overwrite
-            logits, hidden = self.forward(inputs, hidden, block_id)
+            logits, hidden = self.forward(torch.zeros(1,hidden_dim), hidden, block_id)
             # use logits to make choice
 
             probs = F.softmax(logits, dim=-1)
             log_prob = F.log_softmax(logits, dim=-1)
-            print("Probability of taking x")
-            print(probs)
             # draw from probs
             action = probs.multinomial(num_samples=1).data
             #append to return list which is used as the probs
@@ -99,7 +97,7 @@ class Controller(nn.Module):
         #child = self.create_model(activations, nodes)
         #pigerne regner nok med at vi giver en streng i form [node,act,node,act,...,node ]. Lige nu kan vi returnere [act,node,act,node], det skal vi bare lige havde afklaret mandag. Nu bygger jeg i hverfald rollout/archetectur return som [act,node,act,....,act]
         
-        logProb_list = torch.cat(logProb_list,dim=0)
+        logProb_list = torch.cat(logProb_list,dim=-1)
         #return activations, nodes
         return arch, logProb_list
         #return logits, log_prob

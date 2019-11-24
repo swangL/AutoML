@@ -69,7 +69,7 @@ def trainer(epochs,lr):
 
 
 def main():
-    epochs = 50
+    epochs = 5000
     lr = 0.001
     acc_his, loss_his = trainer(epochs,lr)
 
