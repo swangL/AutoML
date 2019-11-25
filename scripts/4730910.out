@@ -1,0 +1,78 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+1000/10000
+2000/10000
+3000/10000
+4000/10000
+5000/10000
+6000/10000
+7000/10000
+8000/10000
+9000/10000
+10000/10000
+1000/10000
+2000/10000
+3000/10000
+4000/10000
+5000/10000
+6000/10000
+7000/10000
+8000/10000
+9000/10000
+10000/10000
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-6>
+Subject: Job 4730910: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <n-62-30-3> by user <s174007> in cluster <dcc> at Mon Nov 25 11:18:37 2019
+Job was executed on host(s) <n-62-20-6>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Mon Nov 25 11:18:38 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Mon Nov 25 11:18:38 2019
+Terminated at Mon Nov 25 14:02:24 2019
+Results reported at Mon Nov 25 14:02:24 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=3GB]"
+#BSUB -o %J.out
+ 
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01
+python3 train.py 10000 MNIST 0.01
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   9787.70 sec.
+    Max Memory :                                 129 MB
+    Average Memory :                             120.88 MB
+    Total Requested Memory :                     3072.00 MB
+    Delta Memory :                               2943.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                9
+    Run time :                                   9845 sec.
+    Turnaround time :                            9827 sec.
+
+The output (if any) is above this job summary.
+
