@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import get_variable
+from .helpers import get_variable
+
 
 #Find how to handle input
 

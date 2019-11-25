@@ -10,7 +10,7 @@ import sklearn.datasets
 import math
 import torchvision
 from torchvision import datasets
-
+from .helpers import get_variable
 
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
