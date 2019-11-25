@@ -15,13 +15,13 @@ def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     ys = torch.argmax(ys,dim=-1)
     ts = torch.argmax(ts,dim=-1)
+    ts = ts.as_type(ys)
     print(ys.get_device())
     print(ts.get_device())
-    print(ts.type(torch.LongTensor).get_device())
-    print(torch.eq(ys,ts.type(torch.LongTensor)).get_device())
-    print(torch.eq(ys,ts.type(torch.LongTensor)).type(torch.FloatTensor).get_device())
-    print(torch.mean(torch.eq(ys,ts.type(torch.LongTensor)).type(torch.FloatTensor)).get_device())
-    return torch.mean(torch.eq(ys,ts.type(torch.LongTensor)).type(torch.FloatTensor)).cpu().data.numpy()
+    print(torch.eq(ys,ts).get_device())
+    print(torch.eq(ys,ts).type(torch.FloatTensor).get_device())
+    print(torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).get_device())
+    return torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).cpu().data.numpy()
 
 def onehot(t, num_classes):
     out = np.zeros((t.shape[0], num_classes))
