@@ -57,7 +57,7 @@ def trainer(epochs,data_set,lr):
             network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
         net = nn.Sequential(*layers)
         if torch.cuda.is_available():
-            print('#converting child to cuda-enabled')
+            #print('#converting child to cuda-enabled', flush=True)
             net.cuda()
         accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
 
