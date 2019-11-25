@@ -4,13 +4,12 @@ import torch.nn as nn
 from sklearn.datasets import make_moons
 import torch.optim as optim
 from torch.autograd import Variable
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.metrics import accuracy_score
-import torch.utils.data
 import matplotlib
 import matplotlib.pyplot as plt
 import sklearn.datasets
 import math
+import torchvision
+from torchvision import datasets
 
 
 def accuracy(ys, ts):
@@ -67,6 +66,8 @@ class Net_MOONS(nn.Module):
 # Network
 class Net_MNIST(nn.Module):
     
+    # ('Conv', '10', '5', 'ReLU', 'Linear', '6', '5', 'ReLU')
+
     # Constructor to build network
     def __init__(self, string, in_features, num_classes, layers):
         
@@ -77,20 +78,31 @@ class Net_MNIST(nn.Module):
 
         # Break down string sent from Controller
         # and add layers in network based on this
-        for s in string:
+        for s in range(len(string)):
 
-            # If element in string is not a number (i.e. an activation function)
-            if s is 'ReLU':
-                layers.append(nn.ReLU())
-            elif s is 'Tanh':
-                layers.append(nn.Tanh())
-            elif s is 'Sigmoid':
-                layers.append(nn.Sigmoid())
+            if string[s] is 'Conv':
+                s_int = int(string[s+1])
+                kernel_size = int(string[s+2])
+                layers.append(nn.Conv2d(num_input, s_int, kernel_size))
+                continue
+            elif string[s-1] is 'Conv' or string[s-2] is 'Conv':
+                continue
+            
             # If element in string is a number (i.e. number of neurons)
-            else:
-                s_int = int(s)
+            if string[s] is 'Linear':
+                s_int = int(string[s+1])
                 layers.append(nn.Linear(num_input, s_int))
                 num_input = s_int
+            elif string[s-1] is 'Linear' or string[s-2] is 'Linear':
+                continue
+
+            # If element in string is not a number (i.e. an activation function)
+            if string[s] is 'ReLU':
+                layers.append(nn.ReLU())
+            elif string[s] is 'Tanh':
+                layers.append(nn.Tanh())
+            elif string[s] is 'Sigmoid':
+                layers.append(nn.Sigmoid())
             
         # Last layer with output 2 representing the two classes
         layers.append(nn.Linear(num_input, num_classes))
@@ -139,7 +151,7 @@ class Train_model():
         self.y_test = Variable(torch.from_numpy(onehot(self.y_test,2))).float()
 
     def mnist_data(self, num_classes):
-        
+
         # Import dataset
         data = np.load('mnist.npz')
 
@@ -166,6 +178,9 @@ class Train_model():
 
         self.X_test = Variable(torch.from_numpy(self.X_test))
         self.y_test = Variable(torch.from_numpy(onehot(self.y_test,num_classes))).float()
+
+        
+
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
         
@@ -306,7 +321,7 @@ class Train_model():
         return val_accuracies[-1]
 
 
-test = False
+test = True
 
 '''
 num_epochs = 1000
@@ -316,19 +331,28 @@ opt = "Adam"
 
 if test:
     # test_string = get_function_from_LSTM
-    test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
-    data_set = "MOONS"
+    
+    params = {
+        "num_epochs": 1000,
+        "opt": "Adam",
+        "lr": 0.01
+    }
+    data_set = "MNIST"
     train_m = Train_model(params)
     layers = []
 
     # Generate 
     if data_set is "MOONS":
+        test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
         train_m.moon_data(1000, 0.2)
         network = Net_MOONS(string=test_string, in_features=2, num_classes=2, layers=layers)
     if data_set is "MNIST":
+        # type of layer, number of neurons, kernel size, activation functions, 
+        test_string = ('Conv', '10', '5', 'ReLU', 'Linear', '6', '5', 'ReLU',)
         train_m.mnist_data(10)
-        network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
-
+        # network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
+        network = Net_MNIST(string=test_string, in_features=7814, num_classes=10, layers=layers)
+        
     # Defining Network
     net = nn.Sequential(*layers)
     print(net)
