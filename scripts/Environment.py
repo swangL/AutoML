@@ -16,12 +16,6 @@ def accuracy(ys, ts):
     ys = torch.argmax(ys,dim=-1)
     ts = torch.argmax(ts,dim=-1)
     return torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).cpu().data.numpy()
-    print(ys.get_device())
-    print(ts.get_device())
-    print(torch.eq(ys,ts).get_device())
-    print(torch.eq(ys,ts).type(torch.FloatTensor).get_device())
-    print(torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).get_device())
-    return torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).data.numpy()
 
 def onehot(t, num_classes):
     out = np.zeros((t.shape[0], num_classes))
@@ -274,7 +268,7 @@ class Train_model():
 
                 val_loss = cross_entropy(val_preds, self.y_val[val_slce])
                 val_acc = accuracy(val_preds, self.y_val[val_slce])
-                val_losses.append(val_loss.data.numpy())
+                val_losses.append(val_loss.cpu().data.numpy())
                 val_accuracies.append(val_acc)
 
             if early_stop:
