@@ -15,7 +15,8 @@ def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     ys = torch.argmax(ys,dim=-1)
     ts = torch.argmax(ts,dim=-1)
-    ts = ts.to(torch.FloatTensor)
+    ts = ts.type(dtype=torch.FloatTensor)
+    return torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).data.numpy()
     print(ys.get_device())
     print(ts.get_device())
     print(torch.eq(ys,ts).get_device())

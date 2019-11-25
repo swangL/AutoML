@@ -43,7 +43,7 @@ def trainer(epochs,data_set,lr):
     for e in range(epochs):
 
         if (e+1) % (epochs/10) == 0:
-            print("{}/{}".format(e+1,epochs))
+            print("{}/{}".format(e+1,epochs), flush=True)
 
         arch,probs = cont.sample()
         #Notice here we also get the probability of the termination!
