@@ -1,0 +1,15 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+1000/10000
+2000/10000
+3000/10000
+4000/10000
+5000/10000
+6000/10000
+7000/10000
+8000/10000
+9000/10000
+10000/10000
