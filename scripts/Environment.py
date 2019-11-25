@@ -260,7 +260,7 @@ class Train_model():
 
                 acc = accuracy(preds, self.y_train[slce])
                 accuracies.append(acc)
-                losses.append(loss.data.numpy())
+                losses.append(loss.cpu().data.numpy())
 
             # --------------- validate the model --------------- #
             for batch in range(val_loader):
