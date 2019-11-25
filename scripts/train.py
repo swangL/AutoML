@@ -20,29 +20,54 @@ def trainer(epochs,lr):
     #return the porbalility of picking each action
     accuracy_hist = []
     loss_hist = []
-    train_m = Train_model()
-    train_m.generate_data(1000,0.2)
-    train_batch_size = len(train_m.X_train)
-    val_batch_size = len(train_m.X_val)
+    
+    data_set = "MNIST"
+    plot = False
+    
+    params = {
+        "num_epochs": 1000,
+        "opt": "Adam",
+        "lr": 0.01
+    }
+
+    train_m = Train_model(params)
+
+    if data_set is "MOONS":
+        train_m.moon_data(num_samples=1000, noise=0.2)
+    elif data_set is "MNIST":
+        train_m.mnist_data(num_classes=10)
 
     for e in range(epochs):  
 
         print("{}/{}".format(e+1,epochs))
         arch,probs = cont.sample()
-        acc = 0
-        for i in range(num_rollouts):
-            
-            # Defining Network
-            layers = []
-            network = Net(arch, 2, layers)
-            net = nn.Sequential(*layers)
-            
-            #train with the archetectur
-            _, accuracy, _, _, _, _ = train_m.train(net,train_batch_size,val_batch_size)
-            acc += accuracy
-            
-        acc /= num_rollouts
-        accuracy_hist.append(acc)
+        #Notice here we also get the probability of the termination!
+    
+        #TODO train the archetecture in the environment, and get the loss and accuracy as an return value
+        
+        # Defining Network
+        layers = []
+        if data_set is "MOONS":
+            network = Net_MOONS(string=arch, in_features=2, num_classes=2, layers=layers)
+        elif data_set is "MNIST":
+            network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
+
+        net = nn.Sequential(*layers)
+        print(net)
+
+        # Set variables used to train neural network
+        # If we do not wish to use batches, set batch_size equals to the length
+        # of the dataset 
+       # num_epochs = 200
+       # train_batch_size = 50
+       # val_batch_size = 50
+       # opt = "Adam"
+       # learning_rate = 0.01
+
+        accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
+
+        accuracy = torch.tensor(accuracy)
+        accuracy_hist.append(accuracy)
 
         #Here we apply REINFORCE on the controller we optimize in respect to 
         # the accuracy on the test set, from the following equation:
@@ -69,8 +94,8 @@ def trainer(epochs,lr):
 
 
 def main():
-    epochs = 5000
-    lr = 0.001
+    epochs = 10
+    lr = 0.01
     acc_his, loss_his = trainer(epochs,lr)
 
     plt.figure()
@@ -80,7 +105,7 @@ def main():
     plt.ylabel('Accuracy')
 
     plt.figure()
-    plt.plot(range(epochs), loss_his, 'b', label='Loss Acc')
+    plt.plot(range(epochs), loss_his, 'b', label='Val Loss')
     plt.legend()
     plt.xlabel('Updates')
     plt.ylabel('Loss')
