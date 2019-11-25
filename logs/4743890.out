@@ -16,3 +16,64 @@ Running script...
 ##converting Controller to cuda-enabled
 1000/10000
 2000/10000
+3000/10000
+4000/10000
+5000/10000
+6000/10000
+7000/10000
+8000/10000
+9000/10000
+10000/10000
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-2>
+Subject: Job 4743890: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Mon Nov 25 15:19:41 2019
+Job was executed on host(s) <n-62-20-2>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Mon Nov 25 15:19:43 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Mon Nov 25 15:19:43 2019
+Terminated at Mon Nov 25 17:34:27 2019
+Results reported at Mon Nov 25 17:34:27 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=3GB]"
+#BSUB -o ../logs/%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01
+python3 train.py 10000 MNIST 0.01
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   8063.08 sec.
+    Max Memory :                                 1885 MB
+    Average Memory :                             1866.91 MB
+    Total Requested Memory :                     3072.00 MB
+    Delta Memory :                               1187.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   8113 sec.
+    Turnaround time :                            8086 sec.
+
+The output (if any) is above this job summary.
+
