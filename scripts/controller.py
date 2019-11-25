@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
+from torch.autograd import get_variable
 
 #Find how to handle input
 
@@ -39,7 +39,7 @@ class Controller(nn.Module):
         self.decoders=[]
         self.num_tokens = [len(activations_dict)]
         for i in range(num_blocks):
-            # TODO (Mads): implement variable amount of choices / help guide
+            # TODO (Mads): implement get_variable amount of choices / help guide
             # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
             self.num_tokens += [len(sizes_dict), len(activations_dict)]
         for size in self.num_tokens:
@@ -62,7 +62,7 @@ class Controller(nn.Module):
     #REINFORCE HERE v v v v v v v
     def loss(self, log_prob, accuracy , baseline):
         R = torch.ones(1)*accuracy
-        return -torch.mean(torch.mul(log_prob, Variable(R)))
+        return -torch.mean(torch.mul(log_prob, get_variable(R)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
