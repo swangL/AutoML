@@ -27,7 +27,7 @@ activations_dict={
 }
 num_blocks=12
 hidden_dim = 50
-
+dictionaries = [activations_dict,sizes_dict]
 
 class Controller(nn.Module):
     def __init__(self,lr):
@@ -39,13 +39,17 @@ class Controller(nn.Module):
         #Linear layer for each of the block - decoder
         self.decoders=[]
         self.num_tokens = [len(activations_dict)]
-        for i in range(num_blocks):
-            # TODO (Mads): implement get_variable amount of choices / help guide
-            # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
-            self.num_tokens += [len(sizes_dict), len(activations_dict)]
-        for size in self.num_tokens:
-            decoder = torch.nn.Linear(hidden_dim, size)
+        for i in range(len(dictionaries)):
+            decoder = torch.nn.Linear(hidden_dim, len(dictionaries[i]))
             self.decoders.append(decoder)
+
+        # for i in range(num_blocks):
+        #     # TODO (Mads): implement get_variable amount of choices / help guide
+        #     # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
+        #     self.num_tokens += [len(sizes_dict), len(activations_dict)]
+        # for size in self.num_tokens:
+        #     decoder = torch.nn.Linear(hidden_dim, size)
+        #     self.decoders.append(decoder)
 
         self.optimizer = optim.Adam(self.parameters(), lr = lr)
 
@@ -53,7 +57,8 @@ class Controller(nn.Module):
     def forward(self, inputs, hidden, block_id):
         # unsqueeze to have correct dim for lstm
         h, c = self.lstm(inputs, hidden)
-        logits = self.decoders[block_id](h)
+        choice = block_id%2
+        logits = self.decoders[choice](h)
         # TODO(Mads): Softmax temperature and added exploration:
         # if self.args.mode == 'train':
         #     logits = (tanh_c*F.tanh(logits))
