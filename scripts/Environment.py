@@ -14,9 +14,6 @@ from torchvision import datasets
 
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
-    correct_prediction = torch.eq(torch.max(ys, 1)[1], torch.max(ts, 1)[1])
-    # averaging the one-hot encoded vector
-    #print("Accuracy: ",torch.mean(correct_prediction.float()))
     ys = torch.argmax(ys,dim=-1)
     ts = torch.argmax(ts,dim=-1)
    
@@ -64,7 +61,7 @@ class Net_MOONS(nn.Module):
             
         # Last layer with output 2 representing the two classes
         layers.append(nn.Linear(num_input, num_classes))
-        layers.append(nn.Softmax(dim=0))
+        layers.append(nn.Softmax(dim=-1))
 
 # Network
 class Net_MNIST(nn.Module):
@@ -81,36 +78,25 @@ class Net_MNIST(nn.Module):
 
         # Break down string sent from Controller
         # and add layers in network based on this
-        for s in range(len(string)):
-
-            if string[s] is 'Conv':
-                s_int = int(string[s+1])
-                kernel_size = int(string[s+2])
-                layers.append(nn.Conv2d(num_input, s_int, kernel_size))
-                continue
-            elif string[s-1] is 'Conv' or string[s-2] is 'Conv':
-                continue
-            
-            # If element in string is a number (i.e. number of neurons)
-            if string[s] is 'Linear':
-                s_int = int(string[s+1])
-                layers.append(nn.Linear(num_input, s_int))
-                num_input = s_int
-            elif string[s-1] is 'Linear' or string[s-2] is 'Linear':
-                continue
+        for s in string:
 
             # If element in string is not a number (i.e. an activation function)
-            if string[s] is 'ReLU':
+            if s is 'ReLU':
                 layers.append(nn.ReLU())
-            elif string[s] is 'Tanh':
+            elif s is 'Tanh':
                 layers.append(nn.Tanh())
-            elif string[s] is 'Sigmoid':
+            elif s is 'Sigmoid':
                 layers.append(nn.Sigmoid())
+            # If element in string is a number (i.e. number of neurons)
+            else:
+                s_int = int(s)
+                layers.append(nn.Linear(num_input, s_int))
+                num_input = s_int
             
         # Last layer with output 2 representing the two classes
         layers.append(nn.Linear(num_input, num_classes))
-        layers.append(nn.Softmax(dim=0))
-        
+        layers.append(nn.Softmax(dim=-1))
+
 
 class Train_model():
 
@@ -238,7 +224,7 @@ class Train_model():
         elif self.params["opt"] is "SGD":
             optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
-        early_stop = False
+        early_stop = True
 
         accuracies, losses, val_accuracies, val_losses = [], [], [], []
 
@@ -345,10 +331,11 @@ if test:
         network = Net_MOONS(string=test_string, in_features=2, num_classes=2, layers=layers)
     if data_set is "MNIST":
         # type of layer, number of neurons, kernel size, activation functions, 
-        test_string = ('Conv', '10', '5', 'ReLU', 'Linear', '6', '5', 'ReLU',)
+        test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
+        #test_string = ('Conv', '10', '5', 'ReLU', 'Linear', '6', '5', 'ReLU',)
         train_m.mnist_data(10)
         # network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
-        network = Net_MNIST(string=test_string, in_features=7814, num_classes=10, layers=layers)
+        network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
         
     # Defining Network
     net = nn.Sequential(*layers)
@@ -361,7 +348,7 @@ if test:
     train_batch_size = len(train_m.X_train)
     val_batch_size = len(train_m.X_val)
 
-    plot = True
+    plot = False
 
     val_accuracy = train_m.train(net, train_batch_size, val_batch_size, plot)
 
