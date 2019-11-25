@@ -13,11 +13,9 @@ from helpers import get_variable
 
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
-    print(ys.is_cuda)
-    print(ts.is_cuda)
     ys = torch.argmax(ys,dim=-1)
     ts = torch.argmax(ts,dim=-1)
-    return torch.mean(torch.eq(ys,ts.type(torch.LongTensor)).type(torch.FloatTensor)).data.numpy()
+    return torch.mean(torch.eq(ys,ts.type(torch.LongTensor)).type(torch.FloatTensor)).cpu().data.numpy()
 
 def onehot(t, num_classes):
     out = np.zeros((t.shape[0], num_classes))
