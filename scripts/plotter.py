@@ -10,8 +10,8 @@ if __name__ == '__main__':
         accs, losses = pkl.load(handle)
 
     # Smoothes out the plot a bit
-    accs = np.convolve(accs, np.ones((5,))/5, mode='valid')
-    losses = np.convolve(accs, np.ones((5,))/5, mode='valid')
+    #accs = np.convolve(accs, np.ones((5,))/5, mode='valid')
+    #losses = np.convolve(losses, np.ones((5,))/5, mode='valid')
 
     # Generate the figure
     sns.set(style='darkgrid')
