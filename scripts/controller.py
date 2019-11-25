@@ -72,7 +72,7 @@ class Controller(nn.Module):
         prob_list = []
         logProb_list = []
         # 1 block includes hidden and activation as such num_block*2 + 1 since we want to append Dense
-        
+
         for block_id in range(1,num_blocks*2+1):
             #handle terminate argument
             #parse last hidden using overwrite
@@ -96,7 +96,7 @@ class Controller(nn.Module):
                     arch.append(value)
         #child = self.create_model(activations, nodes)
         #pigerne regner nok med at vi giver en streng i form [node,act,node,act,...,node ]. Lige nu kan vi returnere [act,node,act,node], det skal vi bare lige havde afklaret mandag. Nu bygger jeg i hverfald rollout/archetectur return som [act,node,act,....,act]
-        
+
         logProb_list = torch.cat(logProb_list,dim=-1)
         #return activations, nodes
         return arch, logProb_list
@@ -106,6 +106,9 @@ class Controller(nn.Module):
 test_class = False
 if test_class:
     net = Controller(0.1)
+    if torch.cuda.is_available():
+        print('##converting network to cuda-enabled')
+        net.cuda()
     arch,l = net.sample()
     print("Network archtecture:")
     print(arch)
