@@ -13,9 +13,10 @@ from helpers import get_variable
 
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
+    print(ys.is_cuda)
+    print(ts.is_cuda)
     ys = torch.argmax(ys,dim=-1)
     ts = torch.argmax(ts,dim=-1)
-
     return torch.mean(torch.eq(ys,ts.type(torch.LongTensor)).type(torch.FloatTensor)).data.numpy()
 
 def onehot(t, num_classes):
@@ -130,13 +131,13 @@ class Train_model():
         self.y_test = y[interval_2:].astype('int32')
 
         self.X_train = get_variable(torch.from_numpy(self.X_train))
-        self.y_train = get_variable(torch.from_numpy(onehot(self.y_train,2))).float()
+        self.y_train = get_variable(torch.from_numpy(onehot(self.y_train,2)).float())
 
         self.X_val = get_variable(torch.from_numpy(self.X_val))
-        self.y_val = get_variable(torch.from_numpy(onehot(self.y_val,2))).float()
+        self.y_val = get_variable(torch.from_numpy(onehot(self.y_val,2)).float())
 
         self.X_test = get_variable(torch.from_numpy(self.X_test))
-        self.y_test = get_variable(torch.from_numpy(onehot(self.y_test,2))).float()
+        self.y_test = get_variable(torch.from_numpy(onehot(self.y_test,2)).float())
 
     def mnist_data(self, num_classes):
 
