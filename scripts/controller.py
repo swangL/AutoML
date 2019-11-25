@@ -68,7 +68,8 @@ class Controller(nn.Module):
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
         # tuple of h and c
-        hidden = (torch.zeros(1,hidden_dim), torch.zeros(1,hidden_dim))
+        hidden = (get_variable(torch.zeros(1,hidden_dim), requires_grad=False), get_variable(torch.zeros(1,hidden_dim), requires_grad=False))
+        input = get_variable(torch.zeros(1,hidden_dim), requires_grad=False)
         arch = []
         prob_list = []
         logProb_list = []
@@ -77,7 +78,7 @@ class Controller(nn.Module):
         for block_id in range(1,num_blocks*2+1):
             #handle terminate argument
             #parse last hidden using overwrite
-            logits, hidden = self.forward(torch.zeros(1,hidden_dim), hidden, block_id)
+            logits, hidden = self.forward(input, hidden, block_id)
             # use logits to make choice
 
             probs = F.softmax(logits, dim=-1)
