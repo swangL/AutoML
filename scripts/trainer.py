@@ -17,6 +17,8 @@ def trainer(epochs,data_set,lr):
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()
+        for decoder in cont.decoders:
+            decoder.cuda()
     #TODO sample an archetecture from the controller
     #return the blocks to be able to train the controller.
     #return the porbalility of picking each action
