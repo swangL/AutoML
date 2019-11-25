@@ -17,7 +17,10 @@ def accuracy(ys, ts):
     correct_prediction = torch.eq(torch.max(ys, 1)[1], torch.max(ts, 1)[1])
     # averaging the one-hot encoded vector
     #print("Accuracy: ",torch.mean(correct_prediction.float()))
-    return torch.mean(correct_prediction.float())
+    ys = torch.argmax(ys,dim=-1)
+    ts = torch.argmax(ts,dim=-1)
+   
+    return torch.mean(torch.eq(ys,ts.type(torch.LongTensor)).type(torch.FloatTensor)).data.numpy()
 
 def onehot(t, num_classes):
     out = np.zeros((t.shape[0], num_classes))
@@ -281,9 +284,8 @@ class Train_model():
                 
                 val_loss = cross_entropy(val_preds, self.y_val[val_slce])
                 val_acc = accuracy(val_preds, self.y_val[val_slce])
-                
                 val_losses.append(val_loss.data.numpy())
-                val_accuracies.append(val_acc.data.numpy())
+                val_accuracies.append(val_acc)
 
             if early_stop:
                 # EarlyStopping
@@ -300,35 +302,30 @@ class Train_model():
                         counter = 0
                         es_old_val = float(val_acc)
                 
-            if e % 10 == 0:
-                print("Epoch %i: " 
-                "TrainAcc: %0.2f"
-                "\tValAcc: %0.2f"  
-                "\tTrainLoss: %0.2f" 
-                "\tValLoss: %0.2f" 
-                % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+
+
+            #if e % 10 == 0:
+            #fsprint("Epoch %i: " 
+            #    "Train Accuracy: %0.3f"
+            #    "\tVal Accuracy: %0.3f"  
+            #    "\tTrain Loss: %0.3f" 
+            #    "\tVal Loss: %0.3f" 
+            #    % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+
 
         # --------------- test the model --------------- #
         test_preds = net(self.X_test)
         test_loss = cross_entropy(test_preds, self.y_test)
         test_acc = accuracy(test_preds, self.y_test)
 
-        if plot:
-            self.plotter(accuracies, losses, val_accuracies, val_losses) 
+        #self.plotter(accuracies, losses, val_accuracies, val_losses) 
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))        
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
         return val_accuracies[-1]
 
 
-test = True
-
-'''
-num_epochs = 1000
-learning_rate = 0.01    
-opt = "Adam"
-'''
-
+test = False
 if test:
     # test_string = get_function_from_LSTM
     
@@ -355,7 +352,7 @@ if test:
         
     # Defining Network
     net = nn.Sequential(*layers)
-    print(net)
+    #print(net)
 
     # Set variables used to train neural network
     # If we do not wish to use batches, set batch_size equals to the length

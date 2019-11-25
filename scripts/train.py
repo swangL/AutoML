@@ -5,6 +5,13 @@ import matplotlib.pyplot as plt
 from Environment import *
 
 
+num_rollouts = 10
+rollouts = []
+
+#run a lot
+#make "batch run" and take the average reward.
+#
+
 def trainer(epochs,lr):
     
     cont = ct(lr) 
@@ -31,6 +38,7 @@ def trainer(epochs,lr):
         train_m.mnist_data(num_classes=10)
 
     for e in range(epochs):  
+
         print("{}/{}".format(e+1,epochs))
         arch,probs = cont.sample()
         #Notice here we also get the probability of the termination!
@@ -76,7 +84,8 @@ def trainer(epochs,lr):
         #TODO verify that this is the REINFORCE behaviour that we want
         cont.optimizer.zero_grad()
         baseline = torch.tensor(0)
-        loss = cont.loss(probs,accuracy,baseline)
+        loss = cont.loss(probs,torch.tensor(acc),baseline)
+        #print(loss)
         loss_hist.append(float(loss.data))
         loss.backward()
         cont.optimizer.step()
