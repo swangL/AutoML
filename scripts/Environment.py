@@ -11,6 +11,7 @@ import torchvision
 from torchvision import datasets
 from torchvision import transforms
 from torch.autograd import Variable
+from helpers import get_variable
 
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
@@ -35,6 +36,7 @@ def cross_entropy(ys, ts):
     # averaging over samples
     return torch.mean(cross_entropy)
 
+
 def compute_conv_dim(dim_size, kernel_size, padding):
     return int(((dim_size - kernel_size + 2 * padding) / 1) + 1)
 
@@ -42,6 +44,7 @@ class Flatten(nn.Module):
     def forward(self, input):
         batch_size = len(input)
         return input.view(batch_size, -1)
+
 
 # Network
 class Net_MOONS(nn.Module):
@@ -91,6 +94,7 @@ class Net_MNIST(nn.Module):
         # Break down string sent from Controller
         # and add layers in network based on this
         for s in string:
+
 
             # If element in string is not a number (i.e. an activation function)
             if s is 'ReLU':

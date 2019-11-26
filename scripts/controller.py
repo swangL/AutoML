@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
+from helpers import get_variable
+
 
 #Find how to handle input
 
@@ -43,7 +44,7 @@ activations_dict={
 
 num_blocks = 12
 hidden_dim = 50
-
+dictionaries = [activations_dict,sizes_dict]
 
 class Controller(nn.Module):
     def __init__(self,lr,Conv=False):
@@ -76,13 +77,22 @@ class Controller(nn.Module):
                 decoder = torch.nn.Linear(hidden_dim, size)
                 self.decoders.append(decoder)
 
+        # for i in range(num_blocks):
+        #     # TODO (Mads): implement get_variable amount of choices / help guide
+        #     # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
+        #     self.num_tokens += [len(sizes_dict), len(activations_dict)]
+        # for size in self.num_tokens:
+        #     decoder = torch.nn.Linear(hidden_dim, size)
+        #     self.decoders.append(decoder)
+
         self.optimizer = optim.Adam(self.parameters(), lr = lr)
 
     # You can see the forward pass as an action taken by the agent
     def forward(self, inputs, hidden, block_id):
         # unsqueeze to have correct dim for lstm
         h, c = self.lstm(inputs, hidden)
-        logits = self.decoders[block_id](h)
+        choice = block_id%2
+        logits = self.decoders[choice](h)
         # TODO(Mads): Softmax temperature and added exploration:
         # if self.args.mode == 'train':
         #     logits = (tanh_c*F.tanh(logits))
@@ -92,12 +102,13 @@ class Controller(nn.Module):
     #REINFORCE HERE v v v v v v v
     def loss(self, log_prob, accuracy , baseline):
         R = torch.ones(1)*accuracy
-        return -torch.mean(torch.mul(log_prob, Variable(R)))
+        return -torch.mean(torch.mul(log_prob, get_variable(R)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
         # tuple of h and c
-        hidden = (torch.zeros(1,hidden_dim), torch.zeros(1,hidden_dim))
+        hidden = (get_variable(torch.zeros(1,hidden_dim), requires_grad=False), get_variable(torch.zeros(1,hidden_dim), requires_grad=False))
+        input = get_variable(torch.zeros(1,hidden_dim), requires_grad=False)
         arch = []
         prob_list = []
         logProb_list = []
@@ -108,7 +119,7 @@ class Controller(nn.Module):
         for block_id in range(1,num_blocks*2+1):
             #handle terminate argument
             #parse last hidden using overwrite
-            logits, hidden = self.forward(torch.zeros(1,hidden_dim), hidden, block_id)
+            logits, hidden = self.forward(input, hidden, block_id)
             # use logits to make choice
 
             probs = F.softmax(logits, dim=-1)
@@ -143,7 +154,7 @@ class Controller(nn.Module):
                         arch.append(value)
         #child = self.create_model(activations, nodes)
         #pigerne regner nok med at vi giver en streng i form [node,act,node,act,...,node ]. Lige nu kan vi returnere [act,node,act,node], det skal vi bare lige havde afklaret mandag. Nu bygger jeg i hverfald rollout/archetectur return som [act,node,act,....,act]
-        
+
         logProb_list = torch.cat(logProb_list,dim=-1)
         #return activations, nodes
         return arch, logProb_list
@@ -153,6 +164,9 @@ class Controller(nn.Module):
 test_class = True
 if test_class:
     net = Controller(0.1, True)
+    if torch.cuda.is_available():
+        print('##converting network to cuda-enabled')
+        net.cuda()
     arch,l = net.sample()
     print("Network archtecture:")
     print(arch)
