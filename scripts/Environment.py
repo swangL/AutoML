@@ -9,12 +9,19 @@ import sklearn.datasets
 import math
 import torchvision
 from torchvision import datasets
+from torchvision import transforms
+from torch.autograd import Variable
 from helpers import get_variable
 
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     ys = torch.argmax(ys,dim=-1)
     ts = torch.argmax(ts,dim=-1)
+    return torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).cpu().data.numpy()
+
+def conv_accuracy(ys, ts):
+    # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
+    ys = torch.argmax(ys,dim=-1)
     return torch.mean(torch.eq(ys,ts).type(torch.FloatTensor)).cpu().data.numpy()
 
 def onehot(t, num_classes):
@@ -28,6 +35,16 @@ def cross_entropy(ys, ts):
     cross_entropy = -torch.sum(ts * torch.log(ys), dim=1, keepdim=False)
     # averaging over samples
     return torch.mean(cross_entropy)
+
+
+def compute_conv_dim(dim_size, kernel_size, padding):
+    return int(((dim_size - kernel_size + 2 * padding) / 1) + 1)
+
+class Flatten(nn.Module):
+    def forward(self, input):
+        batch_size = len(input)
+        return input.view(batch_size, -1)
+
 
 # Network
 class Net_MOONS(nn.Module):
@@ -78,6 +95,7 @@ class Net_MNIST(nn.Module):
         # and add layers in network based on this
         for s in string:
 
+
             # If element in string is not a number (i.e. an activation function)
             if s is 'ReLU':
                 layers.append(nn.ReLU())
@@ -95,6 +113,56 @@ class Net_MNIST(nn.Module):
         layers.append(nn.Linear(num_input, num_classes))
         layers.append(nn.Softmax(dim=-1))
 
+# Network
+class Net_CONV(nn.Module):
+
+    # Constructor to build network
+    def __init__(self, string, in_channels, num_classes, layers, batch_size):
+        
+        image = (28,28)
+        padd = 1
+
+        # Inherit from parent constructor
+        super(Net_CONV, self).__init__()
+        
+        channels = in_channels
+
+        # Break down string sent from Controller
+        # and add layers in network based on this
+        counter = 0
+
+        for s in string:
+
+            # If element in string is not a number (i.e. an activation function)
+            if s is 'ReLU':
+                layers.append(nn.ReLU())
+            elif s is 'Tanh':
+                layers.append(nn.Tanh())
+            elif s is 'Sigmoid':
+                layers.append(nn.Sigmoid())
+            else:
+                if counter % 2 == 0:
+                    s_int = int(s)
+                else:
+                    kernel_size = int(s)
+                    layers.append(nn.Conv2d(in_channels=channels, out_channels=s_int, kernel_size=kernel_size, stride=1, padding=padd))
+                    channels = s_int
+                    self.conv_out_height = compute_conv_dim(image[0], kernel_size, padd)
+                    self.conv_out_width = compute_conv_dim(image[1], kernel_size, padd)
+                    image = (self.conv_out_height, self.conv_out_width)
+                counter += 1  
+        
+        # Last layer with output 2 representing the two classes
+        
+        if string == []:
+            self.conv_out_height = image[0]
+            self.conv_out_width = image[1]
+        self.outLinear = channels * self.conv_out_height * self.conv_out_width
+
+        print(self.outLinear)
+        layers.append(Flatten())
+        layers.append(nn.Linear(self.outLinear, num_classes))
+        layers.append(nn.Softmax(dim=-1))
 
 class Train_model():
 
@@ -106,6 +174,9 @@ class Train_model():
         self.X_test = 0
         self.y_test = 0
         self.params = params
+        self.train_loader = 0
+        self.val_loader = 0
+        self.test_loader = 0
 
     def moon_data(self, num_samples, noise_val):
         # num_samples should be divisable by 5
@@ -165,9 +236,21 @@ class Train_model():
 
         self.X_test = get_variable(torch.from_numpy(self.X_test))
         self.y_test = get_variable(torch.from_numpy(onehot(self.y_test,num_classes))).float()
+    
+    def conv_data(self,  batch_size_train, batch_size_val):
 
+        train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+        test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
 
+        val_set, test_set = torch.utils.data.random_split(test_set, [int(0.9 * len(test_set)), int(0.1 * len(test_set))])
 
+        self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=True)
+        self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size_val, shuffle=True)
+        self.test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size_val, shuffle=True)
+
+        print("Training dataset size: ", len(train_set))
+        print("Validation dataset size: ", len(val_set))
+        print("Testing dataset size: ", len(test_set))
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
@@ -180,8 +263,6 @@ class Train_model():
             for i in range(int(len(val_losses) / divider)):
                 plot_val_losses.append(val_losses[i*divider])
                 plot_val_accuracies.append(val_accuracies[i*divider])
-
-
             for i in range(int(len(losses) / divider)):
                 plot_train_losses.append(losses[i*divider])
                 plot_train_accuracies.append(accuracies[i*divider])
@@ -286,8 +367,6 @@ class Train_model():
                         counter = 0
                         es_old_val = float(val_acc)
 
-
-
             #if e % 10 == 0:
             #fsprint("Epoch %i: "
             #    "Train Accuracy: %0.3f"
@@ -302,31 +381,130 @@ class Train_model():
         test_loss = cross_entropy(test_preds, self.y_test)
         test_acc = accuracy(test_preds, self.y_test)
 
-        #self.plotter(accuracies, losses, val_accuracies, val_losses)
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
         return val_accuracies[-1]
 
+    def train_conv(self, net, plot):
+        if self.params["opt"] is "Adam":
+            optimizer = optim.Adam(net.parameters(), lr=self.params["lr"])
+        
+        elif self.params["opt"] is "SGD":
+            optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
-test = False
+        criterion = nn.CrossEntropyLoss()
+        accuracies, losses, val_accuracies, val_losses, test_accuracies, test_losses = [], [], [], [], [], []
+        
+        # Variables used for EarlyStopping
+        early_stop = True
+        es_old_val, es_new_val, counter = 0, 0, 0
+        es_range = 0.001
+        es_limit = 30
+
+        for e in range(self.params["num_epochs"]):
+            
+            net.train()
+            # --------------- train the model --------------- #
+            for itr, (image_train, label_train) in enumerate(self.train_loader):
+                image_train, label_train = Variable(image_train), Variable(label_train)
+                optimizer.zero_grad()
+                preds = net(image_train)
+                loss = criterion(preds, label_train)
+                loss.backward()
+                optimizer.step()
+                acc = conv_accuracy(preds, label_train)
+                accuracies.append(acc)
+                losses.append(loss.data.numpy())
+            
+            net.eval()
+            # --------------- validate the model --------------- #
+            for itr, (image_val, label_val) in enumerate(self.val_loader):
+                image_val, label_val = Variable(image_val), Variable(label_val)
+                val_preds = net(image_val)
+                val_loss = criterion(val_preds, label_val)
+                val_acc = conv_accuracy(val_preds, label_val)
+                val_losses.append(val_loss.data.numpy())
+                val_accuracies.append(val_acc)
+
+            if early_stop:
+                # EarlyStopping
+                if e == 0:
+                    es_old_val = float(val_acc)
+                else:
+                    es_new_val = float(val_acc)
+
+                    if abs(es_old_val - es_new_val) <= es_range:
+                        counter += 1
+                        if counter == es_limit:
+                            break
+                    else:
+                        counter = 0
+                        es_old_val = float(val_acc)
+                
+            #if e % 10 == 0:
+            print("Epoch %i: " 
+            "TrainAcc: %0.2f"
+            "\tValAcc: %0.2f"  
+            "\tTrainLoss: %0.2f" 
+            "\tValLoss: %0.2f" 
+            % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+
+        # --------------- test the model --------------- #
+        for itr, (image_test, label_test) in enumerate(self.test_loader):
+
+            image_test, label_test = Variable(image_test), Variable(label_test)
+
+            test_preds = net(image_test)
+            test_loss = criterion(test_preds, label_test)
+            test_acc = conv_accuracy(test_preds, label_test)
+            test_losses.append(test_loss.detach().numpy())
+            test_accuracies.append(test_acc)
+        
+        print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_accuracies[-1], test_losses[-1]))
+
+        if plot:
+            self.plotter(accuracies, losses, val_accuracies, val_losses) 
+        
+               
+
+        # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
+        return val_accuracies[-1]
+
+
+test = True
 if test:
     # test_string = get_function_from_LSTM
 
     params = {
-        "num_epochs": 1000,
+        "num_epochs": 10,
         "opt": "Adam",
         "lr": 0.01
     }
-    data_set = "MNIST"
+
+    data_set = "CONV"
     train_m = Train_model(params)
     layers = []
+    # Set get_variables used to train neural network
+    # If we do not wish to use batches, set batch_size equals to the length
+    # of the dataset
+
+    plot = False
 
     # Generate
     if data_set is "MOONS":
         test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
         train_m.moon_data(1000, 0.2)
         network = Net_MOONS(string=test_string, in_features=2, num_classes=2, layers=layers)
+        # Defining Network
+        net = nn.Sequential(*layers)
+        print(net)
+
+        train_batch_size = len(train_m.X_train)
+        val_batch_size = len(train_m.X_val)
+
+        val_accuracy = train_m.train(net, train_batch_size, val_batch_size, plot)
+
     if data_set is "MNIST":
         # type of layer, number of neurons, kernel size, activation functions,
         test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
@@ -334,18 +512,28 @@ if test:
         train_m.mnist_data(10)
         # network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
         network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
+        # Defining Network
+        net = nn.Sequential(*layers)
+        print(net)
 
-    # Defining Network
-    net = nn.Sequential(*layers)
-    #print(net)
+        train_batch_size = len(train_m.X_train)
+        val_batch_size = len(train_m.X_val)
 
-    # Set get_variables used to train neural network
-    # If we do not wish to use batches, set batch_size equals to the length
-    # of the dataset
+        val_accuracy = train_m.train(net, train_batch_size, val_batch_size, plot)
 
-    train_batch_size = len(train_m.X_train)
-    val_batch_size = len(train_m.X_val)
+    if data_set is "CONV":
 
-    plot = False
+        # this batch size is for all training and validation, dont know if its fine
+        batch_size_train = 64
+        batch_size_val = 64
+        test_string = ['6','3', 'ReLU', '8','3', 'ReLU']
+        train_m.conv_data(batch_size_train,batch_size_val)
 
-    val_accuracy = train_m.train(net, train_batch_size, val_batch_size, plot)
+        network = Net_CONV(string=test_string, in_channels=1, num_classes=10, layers=layers, batch_size=batch_size_train)
+        
+        net = nn.Sequential(*layers)
+        print(net)
+
+        val_accuracy = train_m.train_conv(net, plot)
+
+    
