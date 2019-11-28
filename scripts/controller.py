@@ -113,7 +113,7 @@ class Controller(nn.Module):
         prob_list = []
         logProb_list = []
         # 1 block includes hidden and activation as such num_block*2 + 1 since we want to append Dense
-        
+
         indx = 0
 
         for block_id in range(1,num_blocks*2+1):
@@ -135,7 +135,7 @@ class Controller(nn.Module):
                 if choice%3==0:
                     arch.append(activations_dict[int(action)])
                     indx = block_id
-                elif choice%2==0:
+                elif choice%2==0: #should be %3 == 1 i believe
                     arch.append(kernels_dict[int(action)])
                 else:
                     value = channels_dict[int(action)]
