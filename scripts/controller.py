@@ -161,7 +161,7 @@ class Controller(nn.Module):
         #return logits, log_prob
 
 # Test the class here:
-test_class = True
+test_class = False
 if test_class:
     net = Controller(0.1, True)
     if torch.cuda.is_available():
