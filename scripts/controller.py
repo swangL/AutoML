@@ -63,8 +63,7 @@ class Controller(nn.Module):
             for i in range(num_blocks):
                 # TODO (Mads): implement variable amount of choices / help guide
                 # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
-                self.num_tokens += [len(channels_dict), len(kernels_dict), len(activations_dict)]
-                print(self.num_tokens)                
+                self.num_tokens += [len(channels_dict), len(kernels_dict), len(activations_dict)]           
             for size in self.num_tokens:
                 decoder = torch.nn.Linear(hidden_dim, size)
                 self.decoders.append(decoder)
@@ -136,9 +135,7 @@ class Controller(nn.Module):
             # determine whether activation or hidden
             if self.Conv:
                 choice = block_id - indx
-                print(choice)
                 if choice%3==0:
-                    print(action)
                     arch.append(activations_dict[int(action)])
                     indx = block_id
                 elif choice%2==0:
