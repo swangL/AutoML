@@ -120,7 +120,8 @@ class Net_CONV(nn.Module):
     def __init__(self, string, in_channels, num_classes, layers, batch_size):
         
         image = (28,28)
-        padd = 1
+        padding = 1
+        stride = 1
 
         # Inherit from parent constructor
         super(Net_CONV, self).__init__()
@@ -145,10 +146,10 @@ class Net_CONV(nn.Module):
                     s_int = int(s)
                 else:
                     kernel_size = int(s)
-                    layers.append(nn.Conv2d(in_channels=channels, out_channels=s_int, kernel_size=kernel_size, stride=1, padding=padd))
+                    layers.append(nn.Conv2d(in_channels=channels, out_channels=s_int, kernel_size=kernel_size, stride=stride, padding=padding))
                     channels = s_int
-                    self.conv_out_height = compute_conv_dim(image[0], kernel_size, padd)
-                    self.conv_out_width = compute_conv_dim(image[1], kernel_size, padd)
+                    self.conv_out_height = compute_conv_dim(image[0], kernel_size, padding)
+                    self.conv_out_width = compute_conv_dim(image[1], kernel_size, padding)
                     image = (self.conv_out_height, self.conv_out_width)
                 counter += 1  
         
@@ -157,11 +158,11 @@ class Net_CONV(nn.Module):
         if string == []:
             self.conv_out_height = image[0]
             self.conv_out_width = image[1]
-        self.outLinear = channels * self.conv_out_height * self.conv_out_width
+        self.in_features = channels * self.conv_out_height * self.conv_out_width
 
-        print(self.outLinear)
+        print(self.in_features)
         layers.append(Flatten())
-        layers.append(nn.Linear(self.outLinear, num_classes))
+        layers.append(nn.Linear(self.in_features, num_classes))
         layers.append(nn.Softmax(dim=-1))
 
 class Train_model():
@@ -395,9 +396,10 @@ class Train_model():
 
         criterion = nn.CrossEntropyLoss()
         accuracies, losses, val_accuracies, val_losses, test_accuracies, test_losses = [], [], [], [], [], []
+        plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses = [], [], [], []
         
         # Variables used for EarlyStopping
-        early_stop = True
+        early_stop = False
         es_old_val, es_new_val, counter = 0, 0, 0
         es_range = 0.001
         es_limit = 30
@@ -405,6 +407,8 @@ class Train_model():
         for e in range(self.params["num_epochs"]):
             
             net.train()
+            #batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
+            
             # --------------- train the model --------------- #
             for itr, (image_train, label_train) in enumerate(self.train_loader):
                 image_train, label_train = Variable(image_train), Variable(label_train)
@@ -416,6 +420,8 @@ class Train_model():
                 acc = conv_accuracy(preds, label_train)
                 accuracies.append(acc)
                 losses.append(loss.data.numpy())
+                # batch_accuracies.append(acc)
+                # batch_losses.append(loss.data.numpy())
             
             net.eval()
             # --------------- validate the model --------------- #
@@ -426,6 +432,8 @@ class Train_model():
                 val_acc = conv_accuracy(val_preds, label_val)
                 val_losses.append(val_loss.data.numpy())
                 val_accuracies.append(val_acc)
+                # batch_val_accuracies.append(acc)
+                # batch_val_losses.append(loss.data.numpy())
 
             if early_stop:
                 # EarlyStopping
@@ -441,14 +449,27 @@ class Train_model():
                     else:
                         counter = 0
                         es_old_val = float(val_acc)
-                
+            
+            '''
+            # Accuracy for each episode (a mean of the accuracies for the batches)
+            accuracies.append(np.mean(batch_accuracies))
+            val_accuracies.append(np.mean(batch_val_accuracies))
+            losses.append(np.mean(batch_losses))
+            val_losses.append(np.mean(batch_val_losses))
+            '''
+
             #if e % 10 == 0:
             print("Epoch %i: " 
-            "TrainAcc: %0.2f"
-            "\tValAcc: %0.2f"  
-            "\tTrainLoss: %0.2f" 
-            "\tValLoss: %0.2f" 
+            "TrainAcc: %0.3f"
+            "\tValAcc: %0.3f"  
+            "\tTrainLoss: %0.3f" 
+            "\tValLoss: %0.3f" 
             % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+        
+            plot_accuracies.append(accuracies[-1])
+            plot_val_accuracies.append(val_accuracies[-1])
+            plot_losses.append(losses[-1])
+            plot_val_losses.append(val_losses[-1])
 
         # --------------- test the model --------------- #
         for itr, (image_test, label_test) in enumerate(self.test_loader):
@@ -461,18 +482,18 @@ class Train_model():
             test_losses.append(test_loss.detach().numpy())
             test_accuracies.append(test_acc)
         
-        print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_accuracies[-1], test_losses[-1]))
+        # Use first to take last batch for test, use last to take average of batches
+        #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_accuracies[-1], test_losses[-1]))
+        print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (np.mean(test_accuracies), np.mean(test_losses)))
 
         if plot:
-            self.plotter(accuracies, losses, val_accuracies, val_losses) 
-        
-               
+            self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
         return val_accuracies[-1]
 
 
-test = True
+test = False
 if test:
     # test_string = get_function_from_LSTM
 
@@ -489,7 +510,7 @@ if test:
     # If we do not wish to use batches, set batch_size equals to the length
     # of the dataset
 
-    plot = False
+    plot = True
 
     # Generate
     if data_set is "MOONS":
@@ -525,8 +546,8 @@ if test:
 
         # this batch size is for all training and validation, dont know if its fine
         batch_size_train = 64
-        batch_size_val = 64
-        test_string = ['6','3', 'ReLU', '8','3', 'ReLU']
+        batch_size_val = 32
+        test_string = ['6','3', 'ReLU', '6','3', 'ReLU']
         train_m.conv_data(batch_size_train,batch_size_val)
 
         network = Net_CONV(string=test_string, in_channels=1, num_classes=10, layers=layers, batch_size=batch_size_train)
