@@ -64,6 +64,7 @@ class Controller(nn.Module):
                 # TODO (Mads): implement variable amount of choices / help guide
                 # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
                 self.num_tokens += [len(channels_dict), len(kernels_dict), len(activations_dict)]
+                print(self.num_tokens)                
             for size in self.num_tokens:
                 decoder = torch.nn.Linear(hidden_dim, size)
                 self.decoders.append(decoder)
@@ -91,7 +92,10 @@ class Controller(nn.Module):
     def forward(self, inputs, hidden, block_id):
         # unsqueeze to have correct dim for lstm
         h, c = self.lstm(inputs, hidden)
-        choice = block_id%2
+        if self.Conv:
+            choice = block_id%3
+        else:
+            choice = block_id%2
         logits = self.decoders[choice](h)
         # TODO(Mads): Softmax temperature and added exploration:
         # if self.args.mode == 'train':
@@ -123,7 +127,7 @@ class Controller(nn.Module):
             # use logits to make choice
 
             probs = F.softmax(logits, dim=-1)
-            print(logits.shape)
+            # print(logits.shape)
             log_prob = F.log_softmax(logits, dim=-1)
             # draw from probs
             action = probs.multinomial(num_samples=1).data
@@ -132,7 +136,9 @@ class Controller(nn.Module):
             # determine whether activation or hidden
             if self.Conv:
                 choice = block_id - indx
+                print(choice)
                 if choice%3==0:
+                    print(action)
                     arch.append(activations_dict[int(action)])
                     indx = block_id
                 elif choice%2==0:

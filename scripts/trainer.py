@@ -12,8 +12,9 @@ num_rollouts = 10
 #
 
 def trainer(epochs,data_set,lr):
-
-    cont = ct(lr)
+    
+    # Change HERE if conv = True
+    cont = ct(lr, True)
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()

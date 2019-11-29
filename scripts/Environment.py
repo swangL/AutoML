@@ -117,7 +117,7 @@ class Net_MNIST(nn.Module):
 class Net_CONV(nn.Module):
 
     # Constructor to build network
-    def __init__(self, string, in_channels, num_classes, layers, batch_size):
+    def __init__(self, string, in_channels, num_classes, layers):
         
         image = (28,28)
         padding = 1
@@ -160,7 +160,6 @@ class Net_CONV(nn.Module):
             self.conv_out_width = image[1]
         self.in_features = channels * self.conv_out_height * self.conv_out_width
 
-        print(self.in_features)
         layers.append(Flatten())
         layers.append(nn.Linear(self.in_features, num_classes))
         layers.append(nn.Softmax(dim=-1))
@@ -548,7 +547,7 @@ if test:
         batch_size_train = 64
         batch_size_val = 32
         test_string = ['6','3', 'ReLU', '6','3', 'ReLU']
-        train_m.conv_data(batch_size_train,batch_size_val)
+        train_m.conv_data(batch_size_train, batch_size_val)
 
         network = Net_CONV(string=test_string, in_channels=1, num_classes=10, layers=layers, batch_size=batch_size_train)
         
