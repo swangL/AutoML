@@ -499,7 +499,7 @@ class Train_model():
         return val_accuracies[-1]
 
 
-test = True
+test = False
 if test:
     # test_string = get_function_from_LSTM
 
