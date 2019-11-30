@@ -400,7 +400,7 @@ class Train_model():
         plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses = [], [], [], []
         
         # Variables used for EarlyStopping
-        early_stop = False
+        early_stop = True
         es_old_val, es_new_val, counter = 0, 0, 0
         es_range = 0.001
         es_limit = 30

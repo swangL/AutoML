@@ -30,7 +30,7 @@ def trainer(epochs,data_set,lr):
     plot = False
 
     params = {
-        "num_epochs": 10,
+        "num_epochs": 500,
         "opt": "Adam",
         "lr": 0.01
     }
