@@ -13,6 +13,8 @@ from torchvision import transforms
 from torch.autograd import Variable
 from helpers import get_variable
 
+torch.manual_seed(0)
+
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     ys = torch.argmax(ys,dim=-1)
@@ -176,7 +178,7 @@ class Train_model():
         self.params = params
         self.train_loader = 0
         self.val_loader = 0
-        self.test_loader = 0
+        # self.test_loader = 0
 
     def moon_data(self, num_samples, noise_val):
         # num_samples should be divisable by 5
@@ -240,17 +242,17 @@ class Train_model():
     def conv_data(self,  batch_size_train, batch_size_val):
 
         train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
-        test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+        val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
 
-        val_set, test_set = torch.utils.data.random_split(test_set, [int(0.9 * len(test_set)), int(0.1 * len(test_set))])
+        # val_set, test_set = torch.utils.data.random_split(test_set, [int(0.9 * len(test_set)), int(0.1 * len(test_set))])
 
-        self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=True)
-        self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size_val, shuffle=True)
-        self.test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size_val, shuffle=True)
+        self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=False)
+        self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False)
+        # self.test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size_val, shuffle=True)
 
         print("Training dataset size: ", len(train_set))
         print("Validation dataset size: ", len(val_set))
-        print("Testing dataset size: ", len(test_set))
+        # print("Testing dataset size: ", len(test_set))
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
@@ -406,7 +408,7 @@ class Train_model():
         for e in range(self.params["num_epochs"]):
             
             net.train()
-            #batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
+            batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
             
             # --------------- train the model --------------- #
             for itr, (image_train, label_train) in enumerate(self.train_loader):
@@ -417,10 +419,10 @@ class Train_model():
                 loss.backward()
                 optimizer.step()
                 acc = conv_accuracy(preds, label_train)
-                accuracies.append(acc)
-                losses.append(loss.data.numpy())
-                # batch_accuracies.append(acc)
-                # batch_losses.append(loss.data.numpy())
+                # accuracies.append(acc)
+                # losses.append(loss.data.numpy())
+                batch_accuracies.append(acc)
+                batch_losses.append(loss.data.numpy())
             
             net.eval()
             # --------------- validate the model --------------- #
@@ -429,10 +431,10 @@ class Train_model():
                 val_preds = net(image_val)
                 val_loss = criterion(val_preds, label_val)
                 val_acc = conv_accuracy(val_preds, label_val)
-                val_losses.append(val_loss.data.numpy())
-                val_accuracies.append(val_acc)
-                # batch_val_accuracies.append(acc)
-                # batch_val_losses.append(loss.data.numpy())
+                # val_losses.append(val_loss.data.numpy())
+                # val_accuracies.append(val_acc)
+                batch_val_accuracies.append(val_acc)
+                batch_val_losses.append(val_loss.data.numpy())
 
             if early_stop:
                 # EarlyStopping
@@ -449,27 +451,29 @@ class Train_model():
                         counter = 0
                         es_old_val = float(val_acc)
             
-            '''
+            
             # Accuracy for each episode (a mean of the accuracies for the batches)
             accuracies.append(np.mean(batch_accuracies))
             val_accuracies.append(np.mean(batch_val_accuracies))
             losses.append(np.mean(batch_losses))
             val_losses.append(np.mean(batch_val_losses))
-            '''
-
+            
             #if e % 10 == 0:
             print("Epoch %i: " 
             "TrainAcc: %0.3f"
             "\tValAcc: %0.3f"  
             "\tTrainLoss: %0.3f" 
             "\tValLoss: %0.3f" 
-            % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
-        
+            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+
+            '''
             plot_accuracies.append(accuracies[-1])
             plot_val_accuracies.append(val_accuracies[-1])
             plot_losses.append(losses[-1])
             plot_val_losses.append(val_losses[-1])
+            '''
 
+        '''
         # --------------- test the model --------------- #
         for itr, (image_test, label_test) in enumerate(self.test_loader):
 
@@ -480,19 +484,22 @@ class Train_model():
             test_acc = conv_accuracy(test_preds, label_test)
             test_losses.append(test_loss.detach().numpy())
             test_accuracies.append(test_acc)
+        '''
         
         # Use first to take last batch for test, use last to take average of batches
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_accuracies[-1], test_losses[-1]))
-        print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (np.mean(test_accuracies), np.mean(test_losses)))
+        # print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (np.mean(test_accuracies), np.mean(test_losses)))
 
         if plot:
-            self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
+            # self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
+            self.plotter(accuracies, losses, val_accuracies, val_losses)
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
+        # return val_accuracies[-1]
         return val_accuracies[-1]
 
 
-test = False
+test = True
 if test:
     # test_string = get_function_from_LSTM
 
@@ -549,7 +556,7 @@ if test:
         test_string = ['6','3', 'ReLU', '6','3', 'ReLU']
         train_m.conv_data(batch_size_train, batch_size_val)
 
-        network = Net_CONV(string=test_string, in_channels=1, num_classes=10, layers=layers, batch_size=batch_size_train)
+        network = Net_CONV(string=test_string, in_channels=1, num_classes=10, layers=layers)
         
         net = nn.Sequential(*layers)
         print(net)

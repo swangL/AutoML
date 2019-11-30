@@ -30,7 +30,7 @@ def trainer(epochs,data_set,lr):
     plot = False
 
     params = {
-        "num_epochs": 100,
+        "num_epochs": 10,
         "opt": "Adam",
         "lr": 0.01
     }
@@ -101,9 +101,11 @@ def trainer(epochs,data_set,lr):
 
 
 def main():
-    epochs = 2000
+    epochs = 10
+    net_type = "CONV"
     lr = 0.01
-    acc_his, loss_his = trainer(epochs,"CONV",lr)
+
+    acc_his, loss_his = trainer(epochs,net_type,lr)
     
     plt.figure()
     plt.plot(range(epochs), acc_his, 'r', label='Val Acc')

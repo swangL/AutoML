@@ -95,11 +95,15 @@ class Controller(nn.Module):
             choice = block_id%3
         else:
             choice = block_id%2
+        
+        print("self.decoders[choice]: ", self.decoders)
         logits = self.decoders[choice](h)
+        print("logits: ", logits)
         # TODO(Mads): Softmax temperature and added exploration:
         # if self.args.mode == 'train':
         #     logits = (tanh_c*F.tanh(logits))
         # logits, hidden
+        print("logits.squeeze(): ", logits.squeeze())
         return logits.squeeze(), (h, c)
 
     #REINFORCE HERE v v v v v v v
@@ -164,7 +168,7 @@ class Controller(nn.Module):
         #return logits, log_prob
 
 # Test the class here:
-test_class = False
+test_class = True
 if test_class:
     net = Controller(0.1, True)
     if torch.cuda.is_available():
