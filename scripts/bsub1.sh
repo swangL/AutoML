@@ -4,7 +4,7 @@
 #BSUB -J myJob
 #BSUB -n 1
 #BSUB -W 10:00
-#BSUB -R "rusage[mem=3GB]"
+#BSUB -R "rusage[mem=6GB]"
 #BSUB -o ../logs/gru%J.out
 
 module load python3/3.6.2
