@@ -461,17 +461,10 @@ class Train_model():
             #if e % 10 == 0:
             print("Epoch %i: "
             "TrainAcc: %0.3f"
-<<<<<<< HEAD
             "\tValAcc: %0.3f"  
             "\tTrainLoss: %0.3f" 
             "\tValLoss: %0.3f" 
             % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]), flush=True)
-=======
-            "\tValAcc: %0.3f"
-            "\tTrainLoss: %0.3f"
-            "\tValLoss: %0.3f"
-            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]), flush = True)
->>>>>>> 0041380d77fd8c0d0d0b69590d05bfa7c4f91225
 
             '''
             plot_accuracies.append(accuracies[-1])
