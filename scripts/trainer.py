@@ -30,7 +30,7 @@ def trainer(epochs,data_set,lr):
     plot = False
 
     params = {
-        "num_epochs": 500,
+        "num_epochs": 200,
         "opt": "Adam",
         "lr": 0.01
     }
@@ -66,12 +66,17 @@ def trainer(epochs,data_set,lr):
         elif data_set == "CONV":
             network = Net_CONV(string=arch, in_channels=1, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                print('#converting child to cuda-enabled', flush=True)
+                net.cuda()
             accuracy = train_m.train_conv(net=net, plot=plot)
         # net = nn.Sequential(*layers)
+
+        '''
         if torch.cuda.is_available():
             #print('#converting child to cuda-enabled', flush=True)
             net.cuda()
-        
+        '''
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
 
         accuracy = torch.tensor(accuracy)
