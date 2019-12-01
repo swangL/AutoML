@@ -4,7 +4,6 @@ from controller import Controller as ct
 import matplotlib.pyplot as plt
 from Environment import *
 
-
 num_rollouts = 10
 
 #run a lot
@@ -46,8 +45,8 @@ def trainer(epochs,data_set,lr):
 
     for e in range(epochs):
 
-        if (e+1) % (epochs/10) == 0:
-            print("{}/{}".format(e+1,epochs), flush=True)
+        # if (e+1) % (epochs/10) == 0:
+        print("{}/{}".format(e+1,epochs), flush=True)
 
         arch,probs = cont.sample()
         #Notice here we also get the probability of the termination!
@@ -58,14 +57,23 @@ def trainer(epochs,data_set,lr):
         if data_set == "MOONS":
             network = Net_MOONS(string=arch, in_features=2, num_classes=2, layers=layers)
             net = nn.Sequential(*layers)
+            print(net)
+            if torch.cuda.is_available():
+                print('#converting child to cuda-enabled', flush=True)
+                net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "MNIST":
             network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+            print(net)
+            if torch.cuda.is_available():
+                print('#converting child to cuda-enabled', flush=True)
+                net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "CONV":
             network = Net_CONV(string=arch, in_channels=1, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+            print(net)
             if torch.cuda.is_available():
                 print('#converting child to cuda-enabled', flush=True)
                 net.cuda()

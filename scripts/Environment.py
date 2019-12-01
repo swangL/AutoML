@@ -250,9 +250,8 @@ class Train_model():
         self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False)
         # self.test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size_val, shuffle=True)
 
-        print("Training dataset size: ", len(train_set))
-        print("Validation dataset size: ", len(val_set))
-        # print("Testing dataset size: ", len(test_set))
+        # print("Training dataset size: ", len(train_set))
+        # print("Validation dataset size: ", len(val_set))
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
@@ -436,12 +435,18 @@ class Train_model():
                 batch_val_accuracies.append(val_acc)
                 batch_val_losses.append(val_loss.cpu().data.numpy())
 
+            # Accuracy for each episode (a mean of the accuracies for the batches)
+            accuracies.append(np.mean(batch_accuracies))
+            val_accuracies.append(np.mean(batch_val_accuracies))
+            losses.append(np.mean(batch_losses))
+            val_losses.append(np.mean(batch_val_losses))
+
             if early_stop:
                 # EarlyStopping
                 if e == 0:
-                    es_old_val = float(val_acc)
+                    es_old_val = float(val_accuracies[-1])
                 else:
-                    es_new_val = float(val_acc)
+                    es_new_val = float(val_accuracies[-1])
 
                     if abs(es_old_val - es_new_val) <= es_range:
                         counter += 1
@@ -449,14 +454,8 @@ class Train_model():
                             break
                     else:
                         counter = 0
-                        es_old_val = float(val_acc)
+                        es_old_val = float(val_accuracies[-1])
 
-
-            # Accuracy for each episode (a mean of the accuracies for the batches)
-            accuracies.append(np.mean(batch_accuracies))
-            val_accuracies.append(np.mean(batch_val_accuracies))
-            losses.append(np.mean(batch_losses))
-            val_losses.append(np.mean(batch_val_losses))
 
             #if e % 10 == 0:
             print("Epoch %i: "
@@ -464,7 +463,7 @@ class Train_model():
             "\tValAcc: %0.3f"  
             "\tTrainLoss: %0.3f" 
             "\tValLoss: %0.3f" 
-            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]), flush=True)
+            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]), flush=False)
 
             '''
             plot_accuracies.append(accuracies[-1])
