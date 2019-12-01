@@ -13,6 +13,7 @@ if __name__ == '__main__':
     # Smoothes out the plot a bit
     accs = np.convolve(accs, np.ones((5,))/5, mode='valid')
     losses = np.convolve(losses, np.ones((5,))/5, mode='valid')
+    print("acc:", np.sum(accs[-100:])/len(accs[-100:]))
 
     # Generate the figure
     sns.set(style='darkgrid')

@@ -23,8 +23,28 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         cont = ct(lr, True)
     elif cttype == "gcct":
         cont = CollectedController(lr, GRU=True)
-    elif cttype == "gct":
+    elif cttype == "gct": #####################
         cont = ct(lr, GRU=True)
+    elif cttype == "egcct":
+        cont = CollectedController(lr, GRU=True, ent=True)
+    elif cttype == "antitgcct":
+        cont = CollectedController(lr, GRU=True, type="anti")
+    elif cttype == "ecct":
+        cont = CollectedController(lr, ent=True)
+    elif cttype == "antitcct":
+        cont = CollectedController(lr, type="anti")
+    elif cttype == "egct":
+        cont = ct(lr, GRU=True, ent=True)
+    elif cttype == "antitgct":
+        cont = ct(lr, GRU=True, type="anti")
+    elif cttype == "notgct":
+        cont = ct(lr, GRU=True, type="not")
+    elif cttype == "ect":
+        cont = ct(lr, ent=True)
+    elif cttype == "antitct":
+        cont = ct(lr, type="anti")
+    elif cttype == "notct":
+        cont = ct(lr, type="not")
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()
@@ -122,7 +142,7 @@ def main():
     epochs = 10
     net_type = "MOONS"
     lr = 0.01
-    ct = "gcct"
+    ct = "notct"
 
     acc_his, loss_his, probs_layer_1 = trainer(epochs,net_type,lr,ct)
 

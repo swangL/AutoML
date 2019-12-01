@@ -60,11 +60,12 @@ hidden_dim = 50
 dictionaries = [activations_dict,sizes_dict]
 
 class Controller(nn.Module):
-    def __init__(self,lr,Conv=False, GRU = False):
-
+    def __init__(self,lr,Conv=False, GRU = False, type='van', ent=False):
+        self.ent = ent
         self.Conv = Conv
+        self.type = type
         self.probs_layer_1 = []
-
+        self.reward = 0
         super(Controller, self).__init__()
         # Create tokens which maps the amount of options for each layer
         # Recurrent layer
@@ -137,11 +138,15 @@ class Controller(nn.Module):
 
     #REINFORCE HERE v v v v v v v
     def loss(self, log_prob, accuracy , baseline):
-        R = torch.ones(1)*accuracy
+        R = torch.ones(1)*(accuracy+self.reward)
+        if self.ent:
+            return -(torch.mean(torch.mul(log_prob, get_variable(R)))+torch.mean(torch.tensor(self.entropies))*0.01)
         return -torch.mean(torch.mul(log_prob, get_variable(R)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
+        self.reward = 0
+        self.entropies = []
         # tuple of h and c
         if self.GRU:
             hidden = get_variable(torch.zeros(1,hidden_dim), requires_grad=False)
@@ -166,6 +171,9 @@ class Controller(nn.Module):
                 self.probs_layer_1.append(probs.cpu().data.numpy())
             # print(logits.shape)
             log_prob = F.log_softmax(logits, dim=-1)
+            if self.ent:
+                entropy = -(log_prob * probs).sum(dim=-1)
+                self.entropies.append(entropy)
             # draw from probs
             action = probs.multinomial(num_samples=1).data
             #append to return list which is used as the probs
@@ -189,6 +197,12 @@ class Controller(nn.Module):
                     arch.append(activations_dict[int(action)])
                 else:
                     value = sizes_dict[int(action)]
+                    if self.type == "not":
+                        if isinstance(value, str) and value == "term" and block_id < 3: # should have at least two layers
+                            self.reward -= 1
+                    elif self.type == "antit":
+                        if isinstance(value, str) and value == "term":
+                            self.reward -= 0.1*block_id #if terminated penalize just slightly always
                     if value=="term":
                         break
                     else:
@@ -202,10 +216,11 @@ class Controller(nn.Module):
         #return logits, log_prob
 
 class CollectedController(nn.Module):
-    def __init__(self,lr, GRU=False):
+    def __init__(self,lr, GRU=False, type='van', ent = False):
         super(CollectedController, self).__init__()
         # Create tokens which maps the amount of options for each layer
         # Recurrent layer
+        self.ent = ent
         if GRU:
             self.GRU = True
             self.lstm = nn.GRUCell(
@@ -215,7 +230,7 @@ class CollectedController(nn.Module):
         else:
             self.GRU = False
             self.lstm = nn.LSTMCell(hidden_dim,hidden_dim)
-
+        self.type = type
         #Linear layer for each of the block - decoder
         self.decoders=[]
         self.num_tokens = [len(activations_dict)]
@@ -239,12 +254,15 @@ class CollectedController(nn.Module):
     #REINFORCE HERE v v v v v v v
     def loss(self, log_prob, accuracy , baseline):
         R = torch.ones(1)*(accuracy+self.reward)
+        if self.ent:
+            return -(torch.mean(torch.mul(log_prob, get_variable(R)))+torch.mean(torch.tensor(self.entropies))*0.01)
         return -torch.mean(torch.mul(log_prob, get_variable(R)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
         self.reward = 0
         self.actions = []
+        self.entropies = []
         # default input
         inputs = get_variable(torch.zeros(1,hidden_dim))
         # tuple of h and c
@@ -266,6 +284,9 @@ class CollectedController(nn.Module):
             if block_id==1:
                 self.probs_layer_1.append(probs.cpu().data.numpy())
             log_prob = torch.log(probs)
+            if self.ent:
+                entropy = -(log_prob * probs).sum(dim=-1)
+                self.entropies.append(entropy)
             # draw from probs
             value = probs.multinomial(num_samples=1)
             action = collected_dict[int(value.data)]
@@ -275,6 +296,9 @@ class CollectedController(nn.Module):
                 self.reward -= 0.1
             elif len(self.actions) >= 2 and isinstance(self.actions[-1], str) and isinstance(self.actions[-2], str) and action != 'EOS':
                 self.reward -= 0.1
+            if self.type == "antit":
+                if isinstance(action, str) and action == "term":
+                    self.reward -= 0.1*block_id #if terminated penalize just slightly always
             self.actions.append(action)
             log_probs.append(log_prob.gather(0,value))
             #append to return list which is used as the probs
