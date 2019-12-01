@@ -163,7 +163,7 @@ class Controller(nn.Module):
 
             probs = F.softmax(logits, dim=-1)
             if block_id==1:
-                self.probs_layer_1.append(probs.data.numpy())
+                self.probs_layer_1.append(probs.cpu().data.numpy())
             # print(logits.shape)
             log_prob = F.log_softmax(logits, dim=-1)
             # draw from probs
