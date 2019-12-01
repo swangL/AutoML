@@ -422,7 +422,7 @@ class Train_model():
                 # accuracies.append(acc)
                 # losses.append(loss.data.numpy())
                 batch_accuracies.append(acc)
-                batch_losses.append(loss.data.numpy())
+                batch_losses.append(loss.cpu().data.numpy())
 
             net.eval()
             # --------------- validate the model --------------- #
@@ -434,7 +434,7 @@ class Train_model():
                 # val_losses.append(val_loss.data.numpy())
                 # val_accuracies.append(val_acc)
                 batch_val_accuracies.append(val_acc)
-                batch_val_losses.append(val_loss.data.numpy())
+                batch_val_losses.append(val_loss.cpu().data.numpy())
 
             if early_stop:
                 # EarlyStopping
