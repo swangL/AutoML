@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from controller import Controller as ct
+from controller import CollectedController
 import matplotlib.pyplot as plt
 from Environment import *
 
@@ -11,10 +12,19 @@ num_rollouts = 10
 #make "batch run" and take the average reward.
 #
 
-def trainer(epochs,data_set,lr):
+def trainer(epochs,data_set,lr, cttype="ct"):
 
     # Change HERE if conv = True
-    cont = ct(lr, True)
+    if cttype == "ct":
+        cont = ct(lr)
+    elif cttype == "cct":
+        cont = CollectedController(lr)
+    elif cttype == "conv":
+        cont = ct(lr, True)
+    elif cttype == "gcct":
+        cont = CollectedController(lr, GRU=True)
+    elif cttype == "gct":
+        cont = ct(lr, GRU=True)
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()
@@ -46,8 +56,6 @@ def trainer(epochs,data_set,lr):
 
     for e in range(epochs):
 
-        if (e+1) % (epochs/10) == 0:
-            print("{}/{}".format(e+1,epochs), flush=True)
 
         arch,probs = cont.sample()
         #Notice here we also get the probability of the termination!
@@ -78,7 +86,6 @@ def trainer(epochs,data_set,lr):
             accuracy = train_m.train_conv(net=net, plot=plot)
 
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
-
         accuracy = torch.tensor(accuracy)
         accuracy_hist.append(accuracy)
         #Here we apply REINFORCE on the controller we optimize in respect to
@@ -97,20 +104,27 @@ def trainer(epochs,data_set,lr):
         cont.optimizer.zero_grad()
         baseline = torch.tensor(0)
         loss = cont.loss(probs,accuracy,baseline)
+        if (e+1) % (epochs/10) == 0:
+            print("{}/{}".format(e+1,epochs), flush=True)
+            print("Arch", arch)
+            print("acc",accuracy)
+            print("loss",loss)
+            print()
         #print(loss)
         loss_hist.append(float(loss.data))
         loss.backward()
         cont.optimizer.step()
 
-    return accuracy_hist, loss_hist
+    return accuracy_hist, loss_hist, cont.probs_layer_1
 
 
 def main():
     epochs = 10
-    net_type = "CONV"
+    net_type = "MOONS"
     lr = 0.01
+    ct = "gcct"
 
-    acc_his, loss_his = trainer(epochs,net_type,lr)
+    acc_his, loss_his, probs_layer_1 = trainer(epochs,net_type,lr,ct)
 
     plt.figure()
     plt.plot(range(epochs), acc_his, 'r', label='Val Acc')
