@@ -12,7 +12,7 @@ num_rollouts = 10
 #
 
 def trainer(epochs,data_set,lr):
-    
+
     # Change HERE if conv = True
     cont = ct(lr, True)
     if torch.cuda.is_available():
@@ -58,20 +58,25 @@ def trainer(epochs,data_set,lr):
         if data_set == "MOONS":
             network = Net_MOONS(string=arch, in_features=2, num_classes=2, layers=layers)
             net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                #print('#converting child to cuda-enabled', flush=True)
+                net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "MNIST":
             network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                #print('#converting child to cuda-enabled', flush=True)
+                net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "CONV":
             network = Net_CONV(string=arch, in_channels=1, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                #print('#converting child to cuda-enabled', flush=True)
+                net.cuda()
             accuracy = train_m.train_conv(net=net, plot=plot)
-        # net = nn.Sequential(*layers)
-        if torch.cuda.is_available():
-            #print('#converting child to cuda-enabled', flush=True)
-            net.cuda()
-        
+
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
 
         accuracy = torch.tensor(accuracy)
@@ -106,7 +111,7 @@ def main():
     lr = 0.01
 
     acc_his, loss_his = trainer(epochs,net_type,lr)
-    
+
     plt.figure()
     plt.plot(range(epochs), acc_his, 'r', label='Val Acc')
     plt.legend()
