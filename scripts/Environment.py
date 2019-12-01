@@ -97,7 +97,6 @@ class Net_MNIST(nn.Module):
         # and add layers in network based on this
         for s in string:
 
-
             # If element in string is not a number (i.e. an activation function)
             if s is 'ReLU':
                 layers.append(nn.ReLU())
@@ -119,9 +118,10 @@ class Net_MNIST(nn.Module):
 class Net_CONV(nn.Module):
 
     # Constructor to build network
-    def __init__(self, string, in_channels, num_classes, layers):
+    def __init__(self, string, img_size, in_channels, num_classes, layers):
 
-        image = (28,28)
+        # image = (28,28)
+        image = (img_size, img_size)
         padding = 1
         stride = 1
 
@@ -162,7 +162,21 @@ class Net_CONV(nn.Module):
             self.conv_out_width = image[1]
         self.in_features = channels * self.conv_out_height * self.conv_out_width
 
+        # With dropout:
+        # Epoch 1: TrainAcc: 0.827        ValAcc: 0.922   TrainLoss: 1.634        ValLoss: 1.539
+        # Epoch 2: TrainAcc: 0.913        ValAcc: 0.928   TrainLoss: 1.548        ValLoss: 1.533
+        # Epoch 3: TrainAcc: 0.921        ValAcc: 0.954   TrainLoss: 1.540        ValLoss: 1.507
+        # Epoch 4: TrainAcc: 0.931        ValAcc: 0.953   TrainLoss: 1.530        ValLoss: 1.508
+        # Epoch 5: TrainAcc: 0.922        ValAcc: 0.953   TrainLoss: 1.539        ValLoss: 1.508
+        # Epoch 6: TrainAcc: 0.927        ValAcc: 0.947   TrainLoss: 1.534        ValLoss: 1.515
+        # Epoch 7: TrainAcc: 0.922        ValAcc: 0.946   TrainLoss: 1.539        ValLoss: 1.515
+
+        # Without dropout:
+        # Epoch 1: TrainAcc: 0.630        ValAcc: 0.733   TrainLoss: 1.830        ValLoss: 1.727
+        # 
+
         layers.append(Flatten())
+        #layers.append(nn.Dropout(0.5))
         layers.append(nn.Linear(self.in_features, num_classes))
         layers.append(nn.Softmax(dim=-1))
 
@@ -213,22 +227,22 @@ class Train_model():
     def mnist_data(self, num_classes):
 
         # Import dataset
-        data = np.load('mnist.npz')
+        data = np.load('scripts/mnist.npz')
 
         # Define interval used to split data into
         # train, val and test
-        interval_1 = 1000
+        interval_1 = 8000
         interval_2 = 500
 
         # Define train, validation, and test sets
         self.X_train = data['X_train'][:interval_1].astype('float32')
-        self.X_val = data['X_valid'][:interval_2].astype('float32')
-        self.X_test = data['X_test'][:interval_2].astype('float32')
+        self.X_val = data['X_valid'][interval_1:interval_1+interval_2].astype('float32')
+        self.X_test = data['X_test'][interval_1+interval_2:].astype('float32')
 
         # and labels
         self.y_train = data['y_train'][:interval_1].astype('int32')
-        self.y_val = data['y_valid'][:interval_2].astype('int32')
-        self.y_test = data['y_test'][:interval_2].astype('int32')
+        self.y_val = data['y_valid'][interval_1:interval_1+interval_2].astype('int32')
+        self.y_test = data['y_test'][interval_1+interval_2:].astype('int32')
 
         self.X_train = get_variable(torch.from_numpy(self.X_train))
         self.y_train = get_variable(torch.from_numpy(onehot(self.y_train,num_classes))).float()
@@ -239,10 +253,19 @@ class Train_model():
         self.X_test = get_variable(torch.from_numpy(self.X_test))
         self.y_test = get_variable(torch.from_numpy(onehot(self.y_test,num_classes))).float()
 
-    def conv_data(self,  batch_size_train, batch_size_val):
+        print(len(self.X_train), len(self.X_val), len(self.X_test))
 
-        train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
-        val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+    def conv_data(self, data_set_name, batch_size_train, batch_size_val):
+        
+        if data_set_name == 'FASHION':
+            train_set = datasets.FashionMNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+            val_set = datasets.FashionMNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+        elif data_set_name == 'MNIST':
+            train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+            val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+        elif data_set_name == 'CIFAR':
+            train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+            val_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
 
         # val_set, test_set = torch.utils.data.random_split(test_set, [int(0.9 * len(test_set)), int(0.1 * len(test_set))])
 
@@ -250,8 +273,10 @@ class Train_model():
         self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False)
         # self.test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size_val, shuffle=True)
 
-        # print("Training dataset size: ", len(train_set))
-        # print("Validation dataset size: ", len(val_set))
+        print("Training dataset size: ", len(train_set))
+        print("Validation dataset size: ", len(val_set))
+
+
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
@@ -304,19 +329,20 @@ class Train_model():
         elif self.params["opt"] is "SGD":
             optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
-        early_stop = True
-
         accuracies, losses, val_accuracies, val_losses = [], [], [], []
 
         train_loader = math.ceil(len(self.X_train)/train_batch_size)
         val_loader = math.ceil(len(self.X_val)/val_batch_size)
 
         # Variables used for EarlyStopping
+        early_stop = True
         es_old_val, es_new_val, counter = 0, 0, 0
         es_range = 0.001
         es_limit = 30
 
         for e in range(self.params["num_epochs"]):
+            
+            batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
 
             # --------------- train the model --------------- #
             for batch in range(train_loader):
@@ -335,8 +361,12 @@ class Train_model():
                 optimizer.step()
 
                 acc = accuracy(preds, self.y_train[slce])
-                accuracies.append(acc)
-                losses.append(loss.cpu().data.numpy())
+                
+                batch_accuracies.append(acc)
+                batch_losses.append(loss.cpu().data.numpy())
+                
+                # accuracies.append(acc)
+                # losses.append(loss.cpu().data.numpy())
 
             # --------------- validate the model --------------- #
             for batch in range(val_loader):
@@ -350,8 +380,16 @@ class Train_model():
 
                 val_loss = cross_entropy(val_preds, self.y_val[val_slce])
                 val_acc = accuracy(val_preds, self.y_val[val_slce])
-                val_losses.append(val_loss.cpu().data.numpy())
-                val_accuracies.append(val_acc)
+                # val_losses.append(val_loss.cpu().data.numpy())
+                # val_accuracies.append(val_acc)
+                batch_val_accuracies.append(val_acc)
+                batch_val_losses.append(val_loss.cpu().data.numpy())
+
+            # Accuracy for each episode (a mean of the accuracies for the batches)
+            accuracies.append(np.mean(batch_accuracies))
+            val_accuracies.append(np.mean(batch_val_accuracies))
+            losses.append(np.mean(batch_losses))
+            val_losses.append(np.mean(batch_val_losses))
 
             if early_stop:
                 # EarlyStopping
@@ -369,12 +407,12 @@ class Train_model():
                         es_old_val = float(val_acc)
 
             #if e % 10 == 0:
-            #fsprint("Epoch %i: "
-            #    "Train Accuracy: %0.3f"
-            #    "\tVal Accuracy: %0.3f"
-            #    "\tTrain Loss: %0.3f"
-            #    "\tVal Loss: %0.3f"
-            #    % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+            print("Epoch %i: "
+                "Train Accuracy: %0.3f"
+                "\tVal Accuracy: %0.3f"
+                "\tTrain Loss: %0.3f"
+                "\tVal Loss: %0.3f"
+                % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
 
 
         # --------------- test the model --------------- #
@@ -396,7 +434,7 @@ class Train_model():
 
         criterion = nn.CrossEntropyLoss()
         accuracies, losses, val_accuracies, val_losses, test_accuracies, test_losses = [], [], [], [], [], []
-        plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses = [], [], [], []
+        # plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses = [], [], [], []
 
         # Variables used for EarlyStopping
         early_stop = True
@@ -504,7 +542,7 @@ if test:
 
     params = {
         "num_epochs": 10,
-        "opt": "Adam",
+        "opt": "SGD",
         "lr": 0.01
     }
 
@@ -533,7 +571,7 @@ if test:
 
     if data_set is "MNIST":
         # type of layer, number of neurons, kernel size, activation functions,
-        test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
+        test_string = ()
         #test_string = ('Conv', '10', '5', 'ReLU', 'Linear', '6', '5', 'ReLU',)
         train_m.mnist_data(10)
         # network = Net_MNIST(string=test_string, in_features=784, num_classes=10, layers=layers)
@@ -552,12 +590,86 @@ if test:
         # this batch size is for all training and validation, dont know if its fine
         batch_size_train = 64
         batch_size_val = 32
+        img_size = 28
         test_string = ['6','3', 'ReLU', '6','3', 'ReLU']
-        train_m.conv_data(batch_size_train, batch_size_val)
+ 
+        train_m.conv_data(data_set_name="FASHION", batch_size_train=batch_size_train, batch_size_val=batch_size_val)
 
-        network = Net_CONV(string=test_string, in_channels=1, num_classes=10, layers=layers)
+        network = Net_CONV(string=test_string, img_size=img_size, in_channels=1, num_classes=10, layers=layers)
 
         net = nn.Sequential(*layers)
         print(net)
 
         val_accuracy = train_m.train_conv(net, plot)
+
+'''
+import pickle
+
+with open('/Users/mariana/AutoML/runs/151024-01122019/rewards_losses.pkl', 'rb') as f:
+    data = pickle.load(f)
+
+
+acc = data[0]
+loss = data[1]
+
+acc = np.array(acc)
+loss = np.array(loss)
+
+print(acc)
+print(loss)
+
+plt.figure()
+plt.plot(range(len(loss)), loss, 'r', label='Train Loss')
+plt.legend()
+plt.xlabel('Updates')
+plt.ylabel('Loss')
+
+plt.figure()
+plt.plot(range(len(acc)), acc, 'r', label='Train Acc')
+plt.legend()
+plt.xlabel('Updates')
+plt.ylabel('Accuracy')
+plt.show()
+
+'''
+
+# FASHIONMNIST results
+# For test_string = ['6','3', 'ReLU', '6','3', 'ReLU']
+'''
+Epoch 1: TrainAcc: 0.827        ValAcc: 0.922   TrainLoss: 1.634        ValLoss: 1.539
+Epoch 2: TrainAcc: 0.913        ValAcc: 0.928   TrainLoss: 1.548        ValLoss: 1.533
+Epoch 3: TrainAcc: 0.921        ValAcc: 0.954   TrainLoss: 1.540        ValLoss: 1.507
+Epoch 4: TrainAcc: 0.931        ValAcc: 0.953   TrainLoss: 1.530        ValLoss: 1.508
+Epoch 5: TrainAcc: 0.922        ValAcc: 0.953   TrainLoss: 1.539        ValLoss: 1.508
+Epoch 6: TrainAcc: 0.927        ValAcc: 0.947   TrainLoss: 1.534        ValLoss: 1.515
+Epoch 7: TrainAcc: 0.922        ValAcc: 0.946   TrainLoss: 1.539        ValLoss: 1.515
+Epoch 8: TrainAcc: 0.923        ValAcc: 0.942   TrainLoss: 1.538        ValLoss: 1.519
+Epoch 9: TrainAcc: 0.929        ValAcc: 0.955   TrainLoss: 1.532        ValLoss: 1.506
+Epoch 10: TrainAcc: 0.925       ValAcc: 0.942   TrainLoss: 1.536        ValLoss: 1.519
+'''
+# For test_string = [] with dropout
+'''
+Epoch 1: TrainAcc: 0.844        ValAcc: 0.908   TrainLoss: 1.632        ValLoss: 1.558
+Epoch 2: TrainAcc: 0.870        ValAcc: 0.910   TrainLoss: 1.596        ValLoss: 1.554
+Epoch 3: TrainAcc: 0.874        ValAcc: 0.913   TrainLoss: 1.589        ValLoss: 1.549
+Epoch 4: TrainAcc: 0.874        ValAcc: 0.915   TrainLoss: 1.589        ValLoss: 1.547
+Epoch 5: TrainAcc: 0.876        ValAcc: 0.912   TrainLoss: 1.586        ValLoss: 1.549
+Epoch 6: TrainAcc: 0.876        ValAcc: 0.915   TrainLoss: 1.586        ValLoss: 1.547
+Epoch 7: TrainAcc: 0.878        ValAcc: 0.915   TrainLoss: 1.584        ValLoss: 1.547
+Epoch 8: TrainAcc: 0.879        ValAcc: 0.915   TrainLoss: 1.583        ValLoss: 1.546
+Epoch 9: TrainAcc: 0.878        ValAcc: 0.916   TrainLoss: 1.583        ValLoss: 1.545
+Epoch 10: TrainAcc: 0.879       ValAcc: 0.917   TrainLoss: 1.583        ValLoss: 1.543
+'''
+# For test_string = [] without dropout
+'''
+Epoch 1: TrainAcc: 0.890        ValAcc: 0.915   TrainLoss: 1.585        ValLoss: 1.550
+Epoch 2: TrainAcc: 0.919        ValAcc: 0.921   TrainLoss: 1.547        ValLoss: 1.543
+Epoch 3: TrainAcc: 0.924        ValAcc: 0.919   TrainLoss: 1.540        ValLoss: 1.544
+Epoch 4: TrainAcc: 0.928        ValAcc: 0.916   TrainLoss: 1.536        ValLoss: 1.547
+Epoch 5: TrainAcc: 0.930        ValAcc: 0.921   TrainLoss: 1.534        ValLoss: 1.541
+Epoch 6: TrainAcc: 0.932        ValAcc: 0.921   TrainLoss: 1.531        ValLoss: 1.541
+Epoch 7: TrainAcc: 0.934        ValAcc: 0.923   TrainLoss: 1.530        ValLoss: 1.539
+Epoch 8: TrainAcc: 0.936        ValAcc: 0.928   TrainLoss: 1.528        ValLoss: 1.534
+Epoch 9: TrainAcc: 0.936        ValAcc: 0.921   TrainLoss: 1.527        ValLoss: 1.541
+Epoch 10: TrainAcc: 0.937       ValAcc: 0.925   TrainLoss: 1.526        ValLoss: 1.537
+'''

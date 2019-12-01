@@ -30,7 +30,7 @@ def trainer(epochs,data_set,lr):
 
     params = {
         "num_epochs": 200,
-        "opt": "Adam",
+        "opt": "SGD",
         "lr": 0.01
     }
 
