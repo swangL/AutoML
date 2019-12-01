@@ -41,7 +41,7 @@ def trainer(epochs,data_set,lr):
     elif data_set == "MNIST":
         train_m.mnist_data(num_classes=10)
     elif data_set == "CONV":
-        train_m.conv_data(batch_size_train=64, batch_size_val=32)
+        train_m.conv_data(data_set_name='FASHION',batch_size_train=64, batch_size_val=32)
 
     for e in range(epochs):
 
@@ -71,7 +71,7 @@ def trainer(epochs,data_set,lr):
                 net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "CONV":
-            network = Net_CONV(string=arch, in_channels=1, num_classes=10, layers=layers)
+            network = Net_CONV(string=arch, img_size=28, in_channels=1, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
             print(net)
             if torch.cuda.is_available():
