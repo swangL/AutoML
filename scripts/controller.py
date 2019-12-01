@@ -264,7 +264,7 @@ class CollectedController(nn.Module):
 
             probs = F.softmax(logits, dim=-1)
             if block_id==1:
-                self.probs_layer_1.append(probs.data.numpy())
+                self.probs_layer_1.append(probs.cpu().data.numpy())
             log_prob = torch.log(probs)
             # draw from probs
             value = probs.multinomial(num_samples=1)
