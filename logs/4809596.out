@@ -1,0 +1,95 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+Traceback (most recent call last):
+  File "train.py", line 20, in <module>
+    accuracy_hist, loss_hist = trainer(rollouts,dataset,lr)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/trainer.py", line 61, in trainer
+    accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/Environment.py", line 332, in train
+    preds = net(self.X_train[slce])
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/linear.py", line 87, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/functional.py", line 1370, in linear
+    ret = torch.addmm(bias, input, weight.t())
+RuntimeError: Expected object of device type cuda but got device type cpu for argument #1 'self' in call to _th_addmm
+##converting Controller to cuda-enabled
+Traceback (most recent call last):
+  File "train.py", line 20, in <module>
+    accuracy_hist, loss_hist = trainer(rollouts,dataset,lr)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/trainer.py", line 65, in trainer
+    accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/Environment.py", line 332, in train
+    preds = net(self.X_train[slce])
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/linear.py", line 87, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/functional.py", line 1370, in linear
+    ret = torch.addmm(bias, input, weight.t())
+RuntimeError: Expected object of device type cuda but got device type cpu for argument #1 'self' in call to _th_addmm
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-4>
+Subject: Job 4809596: <myJob> in cluster <dcc> Exited
+
+Job <myJob> was submitted from host <n-62-27-21> by user <s174007> in cluster <dcc> at Sun Dec  1 12:40:33 2019
+Job was executed on host(s) <n-62-20-4>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Sun Dec  1 12:40:33 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Sun Dec  1 12:40:33 2019
+Terminated at Sun Dec  1 12:40:57 2019
+Results reported at Sun Dec  1 12:40:57 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=3GB]"
+#BSUB -o ../logs/%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01
+python3 train.py 10000 MNIST 0.01
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   10.05 sec.
+    Max Memory :                                 46 MB
+    Average Memory :                             46.00 MB
+    Total Requested Memory :                     3072.00 MB
+    Delta Memory :                               3026.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   39 sec.
+    Turnaround time :                            24 sec.
+
+The output (if any) is above this job summary.
+
