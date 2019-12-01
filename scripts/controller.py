@@ -63,7 +63,7 @@ class Controller(nn.Module):
             for i in range(num_blocks):
                 # TODO (Mads): implement variable amount of choices / help guide
                 # We can not use a .append here sinze num_token is a nontype object, we can just cast it to be a list, but this works just fine
-                self.num_tokens += [len(channels_dict), len(kernels_dict), len(activations_dict)]
+                self.num_tokens += [len(channels_dict), len(kernels_dict), len(activations_dict)]           
             for size in self.num_tokens:
                 decoder = torch.nn.Linear(hidden_dim, size)
                 self.decoders.append(decoder)
@@ -91,12 +91,19 @@ class Controller(nn.Module):
     def forward(self, inputs, hidden, block_id):
         # unsqueeze to have correct dim for lstm
         h, c = self.lstm(inputs, hidden)
-        choice = block_id%2
+        if self.Conv:
+            choice = block_id%3
+        else:
+            choice = block_id%2
+        
+        # print("self.decoders[choice]: ", self.decoders)
         logits = self.decoders[choice](h)
+        # print("logits: ", logits)
         # TODO(Mads): Softmax temperature and added exploration:
         # if self.args.mode == 'train':
         #     logits = (tanh_c*F.tanh(logits))
         # logits, hidden
+        # print("logits.squeeze(): ", logits.squeeze())
         return logits.squeeze(), (h, c)
 
     #REINFORCE HERE v v v v v v v
@@ -123,7 +130,7 @@ class Controller(nn.Module):
             # use logits to make choice
 
             probs = F.softmax(logits, dim=-1)
-            print(logits.shape)
+            # print(logits.shape)
             log_prob = F.log_softmax(logits, dim=-1)
             # draw from probs
             action = probs.multinomial(num_samples=1).data
@@ -161,7 +168,7 @@ class Controller(nn.Module):
         #return logits, log_prob
 
 # Test the class here:
-test_class = True
+test_class = False
 if test_class:
     net = Controller(0.1, True)
     if torch.cuda.is_available():

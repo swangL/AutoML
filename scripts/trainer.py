@@ -12,8 +12,9 @@ num_rollouts = 10
 #
 
 def trainer(epochs,data_set,lr):
-
-    cont = ct(lr)
+    
+    # Change HERE if conv = True
+    cont = ct(lr, True)
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()
@@ -29,16 +30,19 @@ def trainer(epochs,data_set,lr):
     plot = False
 
     params = {
-        "num_epochs": 1000,
+        "num_epochs": 500,
         "opt": "Adam",
         "lr": 0.01
     }
 
     train_m = Train_model(params)
+
     if data_set == "MOONS":
         train_m.moon_data(num_samples=1000, noise_val=0.2)
     elif data_set == "MNIST":
         train_m.mnist_data(num_classes=10)
+    elif data_set == "CONV":
+        train_m.conv_data(batch_size_train=64, batch_size_val=32)
 
     for e in range(epochs):
 
@@ -53,13 +57,22 @@ def trainer(epochs,data_set,lr):
         layers = []
         if data_set == "MOONS":
             network = Net_MOONS(string=arch, in_features=2, num_classes=2, layers=layers)
+            net = nn.Sequential(*layers)
+            accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "MNIST":
             network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
-        net = nn.Sequential(*layers)
+            net = nn.Sequential(*layers)
+            accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
+        elif data_set == "CONV":
+            network = Net_CONV(string=arch, in_channels=1, num_classes=10, layers=layers)
+            net = nn.Sequential(*layers)
+            accuracy = train_m.train_conv(net=net, plot=plot)
+        # net = nn.Sequential(*layers)
         if torch.cuda.is_available():
             #print('#converting child to cuda-enabled', flush=True)
             net.cuda()
-        accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
+        
+        # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
 
         accuracy = torch.tensor(accuracy)
         accuracy_hist.append(accuracy)
@@ -88,10 +101,12 @@ def trainer(epochs,data_set,lr):
 
 
 def main():
-    epochs = 2000
+    epochs = 10
+    net_type = "CONV"
     lr = 0.01
-    acc_his, loss_his = trainer(epochs,"MNIST",lr)
 
+    acc_his, loss_his = trainer(epochs,net_type,lr)
+    
     plt.figure()
     plt.plot(range(epochs), acc_his, 'r', label='Val Acc')
     plt.legend()
