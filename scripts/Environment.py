@@ -120,14 +120,14 @@ class Net_CONV(nn.Module):
 
     # Constructor to build network
     def __init__(self, string, in_channels, num_classes, layers):
-        
+
         image = (28,28)
         padding = 1
         stride = 1
 
         # Inherit from parent constructor
         super(Net_CONV, self).__init__()
-        
+
         channels = in_channels
 
         # Break down string sent from Controller
@@ -153,10 +153,10 @@ class Net_CONV(nn.Module):
                     self.conv_out_height = compute_conv_dim(image[0], kernel_size, padding)
                     self.conv_out_width = compute_conv_dim(image[1], kernel_size, padding)
                     image = (self.conv_out_height, self.conv_out_width)
-                counter += 1  
-        
+                counter += 1
+
         # Last layer with output 2 representing the two classes
-        
+
         if string == []:
             self.conv_out_height = image[0]
             self.conv_out_width = image[1]
@@ -238,7 +238,7 @@ class Train_model():
 
         self.X_test = get_variable(torch.from_numpy(self.X_test))
         self.y_test = get_variable(torch.from_numpy(onehot(self.y_test,num_classes))).float()
-    
+
     def conv_data(self,  batch_size_train, batch_size_val):
 
         train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
@@ -391,14 +391,14 @@ class Train_model():
     def train_conv(self, net, plot):
         if self.params["opt"] is "Adam":
             optimizer = optim.Adam(net.parameters(), lr=self.params["lr"])
-        
+
         elif self.params["opt"] is "SGD":
             optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
         criterion = nn.CrossEntropyLoss()
         accuracies, losses, val_accuracies, val_losses, test_accuracies, test_losses = [], [], [], [], [], []
         plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses = [], [], [], []
-        
+
         # Variables used for EarlyStopping
         early_stop = True
         es_old_val, es_new_val, counter = 0, 0, 0
@@ -406,10 +406,10 @@ class Train_model():
         es_limit = 30
 
         for e in range(self.params["num_epochs"]):
-            
+
             net.train()
             batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
-            
+
             # --------------- train the model --------------- #
             for itr, (image_train, label_train) in enumerate(self.train_loader):
                 image_train, label_train = Variable(image_train), Variable(label_train)
@@ -423,7 +423,7 @@ class Train_model():
                 # losses.append(loss.data.numpy())
                 batch_accuracies.append(acc)
                 batch_losses.append(loss.data.numpy())
-            
+
             net.eval()
             # --------------- validate the model --------------- #
             for itr, (image_val, label_val) in enumerate(self.val_loader):
@@ -450,21 +450,21 @@ class Train_model():
                     else:
                         counter = 0
                         es_old_val = float(val_acc)
-            
-            
+
+
             # Accuracy for each episode (a mean of the accuracies for the batches)
             accuracies.append(np.mean(batch_accuracies))
             val_accuracies.append(np.mean(batch_val_accuracies))
             losses.append(np.mean(batch_losses))
             val_losses.append(np.mean(batch_val_losses))
-            
+
             #if e % 10 == 0:
-            print("Epoch %i: " 
+            print("Epoch %i: "
             "TrainAcc: %0.3f"
-            "\tValAcc: %0.3f"  
-            "\tTrainLoss: %0.3f" 
-            "\tValLoss: %0.3f" 
-            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+            "\tValAcc: %0.3f"
+            "\tTrainLoss: %0.3f"
+            "\tValLoss: %0.3f"
+            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]), flush = True)
 
             '''
             plot_accuracies.append(accuracies[-1])
@@ -485,7 +485,7 @@ class Train_model():
             test_losses.append(test_loss.detach().numpy())
             test_accuracies.append(test_acc)
         '''
-        
+
         # Use first to take last batch for test, use last to take average of batches
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_accuracies[-1], test_losses[-1]))
         # print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (np.mean(test_accuracies), np.mean(test_losses)))
@@ -557,10 +557,8 @@ if test:
         train_m.conv_data(batch_size_train, batch_size_val)
 
         network = Net_CONV(string=test_string, in_channels=1, num_classes=10, layers=layers)
-        
+
         net = nn.Sequential(*layers)
         print(net)
 
         val_accuracy = train_m.train_conv(net, plot)
-
-    
