@@ -45,6 +45,8 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         cont = ct(lr, type="anti")
     elif cttype == "notct":
         cont = ct(lr, type="not")
+    elif cttype == "divnotct":
+        cont = ct(lr, type="divnot")
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()
@@ -55,7 +57,8 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     #return the porbalility of picking each action
     accuracy_hist = []
     loss_hist = []
-
+    depth = []
+    sample_networks = []
 
     plot = False
 
@@ -108,6 +111,9 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         accuracy = torch.tensor(accuracy)
         accuracy_hist.append(accuracy)
+        depth.append(len(arch))
+        if e > (epochs-50):
+            sample_networks.append(arch)
         #Here we apply REINFORCE on the controller we optimize in respect to
         # the accuracy on the test set, from the following equation:
         #--------------  (1/T) sum(∇log p(a(t)|a(t-1):0)R ------#
@@ -135,22 +141,28 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         loss.backward()
         cont.optimizer.step()
 
-    return accuracy_hist, loss_hist, cont.probs_layer_1
+    return accuracy_hist, loss_hist, cont.probs_layer_1, depth, sample_networks
 
 
 def main():
     epochs = 10
     net_type = "MOONS"
     lr = 0.01
-    ct = "notct"
+    ct = "divnotct"
 
-    acc_his, loss_his, probs_layer_1 = trainer(epochs,net_type,lr,ct)
+    acc_his, loss_his, probs_layer_1, depths, archs = trainer(epochs,net_type,lr,ct)
 
     plt.figure()
     plt.plot(range(epochs), acc_his, 'r', label='Val Acc')
     plt.legend()
     plt.xlabel('Updates')
     plt.ylabel('Accuracy')
+    print(depths)
+    plt.figure()
+    plt.plot(range(epochs), depths, 'r', label='Val Acc')
+    plt.legend()
+    plt.xlabel('Updates')
+    plt.ylabel('depth w. activations')
 
     plt.figure()
     plt.plot(range(epochs), loss_his, 'b', label='Val Loss')
