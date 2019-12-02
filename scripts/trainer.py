@@ -114,6 +114,7 @@ def trainer(epochs,data_set,lr):
 
 
 def main():
+    
     epochs = 10
     net_type = "CONV"
     lr = 0.01
