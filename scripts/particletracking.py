@@ -73,4 +73,4 @@ train_data = get_variable(train_data)
 train_target = get_variable(train_target)
 
 print(val_data.shape)
-print(len(val_target))
+print((val_target[0]))

@@ -7,7 +7,7 @@ import sys
 if __name__ == '__main__':
 
     with open(sys.argv[1]+'.pkl', 'rb') as handle:
-        accs, losses, parameters, probs_layer_1 = pkl.load(handle)
+        accs, losses, parameters, probs_layer_1, depths, archs = pkl.load(handle)
 
     print(parameters)
     # Smoothes out the plot a bit
@@ -21,11 +21,17 @@ if __name__ == '__main__':
     plt.plot(range(len(accs)), accs)
     plt.xlabel('Rollout')
     plt.ylabel('Accuracy')
-    
+
     plt.figure()
     plt.plot(range(len(losses)), losses)
     plt.xlabel('Rollout')
     plt.ylabel('losses')
+
+    plt.figure()
+    plt.plot(range(len(depths)), depths)
+    plt.xlabel('Rollout')
+    plt.ylabel('Depth (including acti)')
+
 
     sizes_dict={
         0:"term",
