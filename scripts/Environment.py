@@ -258,17 +258,16 @@ class Train_model():
 
     def conv_data(self, data_set_name, batch_size_train, batch_size_val):
         
-        transform=transforms.Compose([transforms.ToTensor(),
-                              transforms.Normalize((0.5, 0.5), (0.5, 0.5)),
-                             ])
+        
+        #transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5), (0.5, 0.5)), ])
                              
         if data_set_name == 'FASHION':
             train_set = datasets.FashionMNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.FashionMNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             
         elif data_set_name == 'MNIST':
-            train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-            val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+            train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+            val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             
             train_split_len = 6000
             val_split_len = 900
