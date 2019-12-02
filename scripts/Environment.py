@@ -257,12 +257,16 @@ class Train_model():
 
     def conv_data(self, data_set_name, batch_size_train, batch_size_val):
         
+        transform=transforms.Compose([transforms.ToTensor(),
+                              transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                             ])
+                             
         if data_set_name == 'FASHION':
             train_set = datasets.FashionMNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.FashionMNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
         elif data_set_name == 'MNIST':
-            train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
-            val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+            train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+            val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
         elif data_set_name == 'CIFAR':
             train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
@@ -537,6 +541,7 @@ class Train_model():
 
 
 test = False
+
 if test:
     # test_string = get_function_from_LSTM
 
@@ -546,7 +551,7 @@ if test:
         "lr": 0.01
     }
 
-    data_set = "CONV"
+    data_set = "MOONS"
     train_m = Train_model(params)
     layers = []
     # Set get_variables used to train neural network
@@ -591,9 +596,9 @@ if test:
         batch_size_train = 64
         batch_size_val = 32
         img_size = 28
-        test_string = ['6','3', 'ReLU', '6','3', 'ReLU']
+        test_string = []
  
-        train_m.conv_data(data_set_name="FASHION", batch_size_train=batch_size_train, batch_size_val=batch_size_val)
+        train_m.conv_data(data_set_name="MNIST", batch_size_train=batch_size_train, batch_size_val=batch_size_val)
 
         network = Net_CONV(string=test_string, img_size=img_size, in_channels=1, num_classes=10, layers=layers)
 
