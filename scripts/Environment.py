@@ -259,7 +259,7 @@ class Train_model():
     def conv_data(self, data_set_name, batch_size_train, batch_size_val):
         
         transform=transforms.Compose([transforms.ToTensor(),
-                              transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                              transforms.Normalize((0.5, 0.5), (0.5, 0.5)),
                              ])
                              
         if data_set_name == 'FASHION':
