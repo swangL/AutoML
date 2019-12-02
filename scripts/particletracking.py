@@ -5,8 +5,15 @@ import numpy as np
 import cv2
 import torch
 from helpers import get_variable
+from Environment import *
+from torchvision import transforms
+
+
 txtfolder = "xyzTrainingTXTFloat"
 imagefolder = "xyzTrainingImagesFloat"
+
+def normalize(x): return x/255
+
 def create_training_data(imagefolder):
     training_data=[] # Empty list to fill up with training data from image folder
     pics=os.listdir(imagefolder) #Take files in corresponding folder, which should only be pictures!
@@ -49,11 +56,16 @@ for i in range (0, len(dirCoordinates)):
 train_target=torch.tensor(train_target) 
 numImages = len(train_target) #Total number of loaded images
 train_data=create_training_data(imagefolder)
-print(train_data.shape)
+# train_data = train_data.squeeze(1)
+train_data = torch.flatten(train_data, start_dim=1)
 
-print(len(train_target))
 validationfolder = "xyzPredictionImagesFloat"
 val_data = create_training_data(validationfolder)
+val_data = torch.flatten(val_data, start_dim=1)
+# val_data = val_data.squeeze(1)
+
+
+
 # Create empty list to save x,y,z-coordinates as matrix
 val_target=[]
 val_txtfolder = "xyzPredictionTXTFloat"
@@ -66,11 +78,68 @@ for i in range (0, len(dirCoordinates)):
     val_target.append([settingLoad(val_txtfolder, dirCoordinates[i])[0],settingLoad(val_txtfolder, dirCoordinates[i])[1],abs(settingLoad(val_txtfolder, dirCoordinates[i])[2])])
 
 
+
 # Load into CUDA
-val_data = get_variable(val_data)
-val_target = get_variable(torch.tensor(val_target))
-train_data = get_variable(train_data)
-train_target = get_variable(train_target)
+val_data = get_variable(val_data).float()
+val_target = get_variable(torch.tensor(val_target)).float()
+train_data = get_variable(train_data).float()
+train_target = get_variable(train_target).float()
+
+# train_target = torch.flatten(train_target, start_dim=0)
+# val_target = torch.flatten(val_target, start_dim=0)
 
 print(val_data.shape)
-print((val_target[0]))
+print(len(val_target))
+print(train_data.shape)
+print(len(train_target))
+
+transform = transforms.Compose([transforms.ToTensor,
+                                transforms.Normalize([0.5], [0.5])])
+
+val_data = normalize(val_data)
+val_target = normalize(val_target)
+train_target = normalize(train_target)
+train_data = normalize(train_data)
+
+'''
+val_data.transforms.Normalize([0.5], [0.5])
+
+val_data = transform(val_data).float()
+train_data = transform(train_data)
+val_target = transform(val_target)
+train_target = transform(train_target)
+
+'''
+
+
+print("val_target.shape:", val_target.shape)
+
+plot = True
+
+params = {
+    "num_epochs": 500,
+    "opt": "Adam",
+    "lr": 0.01
+}
+
+layers = []
+
+train_m = Train_model(params)
+
+# type of layer, number of neurons, kernel size, activation functions,
+test_string = ('10', 'ReLU', '5', 'Sigmoid', '6', 'ReLU')
+
+network = Net_MNIST(string=test_string, in_features=2025, num_classes=3, layers=layers)
+# Defining Network
+net = nn.Sequential(*layers)
+print(net)
+
+train_batch_size = train_data.shape[0]
+val_batch_size = val_data.shape[0]
+
+print(train_batch_size)
+print(val_batch_size)
+
+train_m.particle_data(train_data, train_target, val_data, val_target)
+
+val_accuracy = train_m.particle_train(net, train_batch_size, val_batch_size, plot)

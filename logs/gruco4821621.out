@@ -1,0 +1,159 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+1000/10000
+Arch [32, 'ReLU', 16, 'Sigmoid', 4, 'ReLU']
+acc tensor(0.9799)
+loss tensor(1.5295, device='cuda:0', grad_fn=<NegBackward>)
+
+2000/10000
+Arch [32, 'ReLU', 64, 'ReLU', 16, 'ReLU', 8, 'Tanh', 16, 'Sigmoid', 2, 'Sigmoid', 32, 'ReLU', 16, 'ReLU', 8, 'Tanh', 64, 'Tanh']
+acc tensor(0.9799)
+loss tensor(1.4324, device='cuda:0', grad_fn=<NegBackward>)
+
+3000/10000
+Arch [16, 'Tanh']
+acc tensor(0.8693)
+loss tensor(1.0654, device='cuda:0', grad_fn=<NegBackward>)
+
+4000/10000
+Arch [4, 'ReLU', 2, 'Sigmoid', 32, 'ReLU', 64, 'Tanh', 16, 'Tanh', 64, 'ReLU']
+acc tensor(0.9749)
+loss tensor(1.3766, device='cuda:0', grad_fn=<NegBackward>)
+
+5000/10000
+Arch [64, 'ReLU', 8, 'Sigmoid', 16, 'Tanh', 2, 'Tanh', 4, 'Sigmoid', 16, 'Sigmoid', 4, 'Sigmoid', 32, 'Tanh', 32, 'Tanh']
+acc tensor(0.9799)
+loss tensor(1.4615, device='cuda:0', grad_fn=<NegBackward>)
+
+6000/10000
+Arch [2, 'Tanh']
+acc tensor(0.8442)
+loss tensor(1.2508, device='cuda:0', grad_fn=<NegBackward>)
+
+7000/10000
+Arch [64, 'ReLU']
+acc tensor(0.9598)
+loss tensor(0.5401, device='cuda:0', grad_fn=<NegBackward>)
+
+8000/10000
+Arch [32, 'ReLU']
+acc tensor(0.9598)
+loss tensor(0.8674, device='cuda:0', grad_fn=<NegBackward>)
+
+9000/10000
+Arch [8, 'ReLU']
+acc tensor(0.8543)
+loss tensor(0.6631, device='cuda:0', grad_fn=<NegBackward>)
+
+10000/10000
+Arch [32, 'ReLU']
+acc tensor(0.9648)
+loss tensor(0.8908, device='cuda:0', grad_fn=<NegBackward>)
+
+##converting Controller to cuda-enabled
+1000/10000
+Arch [32, 'Sigmoid']
+acc tensor(0.8156)
+loss tensor(0.9547, device='cuda:0', grad_fn=<NegBackward>)
+
+2000/10000
+Arch [32, 'Sigmoid']
+acc tensor(0.8257)
+loss tensor(1.4045, device='cuda:0', grad_fn=<NegBackward>)
+
+3000/10000
+Arch [32, 'Tanh']
+acc tensor(0.8357)
+loss tensor(0.9042, device='cuda:0', grad_fn=<NegBackward>)
+
+4000/10000
+Arch [64, 'Tanh', 64, 'ReLU']
+acc tensor(0.8216)
+loss tensor(1.2604, device='cuda:0', grad_fn=<NegBackward>)
+
+5000/10000
+Arch [64, 'Tanh', 4, 'ReLU', 4, 'Tanh', 16, 'Tanh', 4, 'Tanh', 4, 'Tanh', 64, 'Sigmoid', 64, 'Tanh', 4, 'Sigmoid', 2, 'Sigmoid']
+acc tensor(0.1042)
+loss tensor(0.1389, device='cuda:0', grad_fn=<NegBackward>)
+
+6000/10000
+Arch [64, 'Tanh', 16, 'Sigmoid', 4, 'Tanh', 8, 'Sigmoid', 4, 'Tanh', 16, 'Sigmoid']
+acc tensor(0.6012)
+loss tensor(0.7278, device='cuda:0', grad_fn=<NegBackward>)
+
+7000/10000
+Arch [64, 'Tanh']
+acc tensor(0.8477)
+loss tensor(0.3485, device='cuda:0', grad_fn=<NegBackward>)
+
+8000/10000
+Arch [64, 'Tanh']
+acc tensor(0.8377)
+loss tensor(0.3288, device='cuda:0', grad_fn=<NegBackward>)
+
+9000/10000
+Arch [32, 'Sigmoid']
+acc tensor(0.8156)
+loss tensor(1.4220, device='cuda:0', grad_fn=<NegBackward>)
+
+10000/10000
+Arch [64, 'Tanh']
+acc tensor(0.8357)
+loss tensor(0.3191, device='cuda:0', grad_fn=<NegBackward>)
+
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-11>
+Subject: Job 4821621: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Mon Dec  2 10:59:31 2019
+Job was executed on host(s) <n-62-20-11>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Mon Dec  2 11:05:35 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Mon Dec  2 11:05:35 2019
+Terminated at Mon Dec  2 14:16:53 2019
+Results reported at Mon Dec  2 14:16:53 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/gruco%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01 divnotct
+python3 train.py 10000 MNIST 0.01 divnotct
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   11443.80 sec.
+    Max Memory :                                 1903 MB
+    Average Memory :                             1876.69 MB
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               4241.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   11480 sec.
+    Turnaround time :                            11842 sec.
+
+The output (if any) is above this job summary.
+

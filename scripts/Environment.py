@@ -12,9 +12,14 @@ from torchvision import datasets
 from torchvision import transforms
 from torch.autograd import Variable
 from helpers import get_variable
+import sklearn
+from sklearn import metrics
 
 torch.manual_seed(0)
 
+def mse_loss(ys, ts):
+    return torch.mean((ys-ts)**2)
+    
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     ys = torch.argmax(ys,dim=-1)
@@ -97,7 +102,6 @@ class Net_MNIST(nn.Module):
         # and add layers in network based on this
         for s in string:
 
-
             # If element in string is not a number (i.e. an activation function)
             if s is 'ReLU':
                 layers.append(nn.ReLU())
@@ -113,7 +117,7 @@ class Net_MNIST(nn.Module):
 
         # Last layer with output 2 representing the two classes
         layers.append(nn.Linear(num_input, num_classes))
-        layers.append(nn.Softmax(dim=-1))
+        # layers.append(nn.Softmax(dim=-1))
 
 # Network
 class Net_CONV(nn.Module):
@@ -161,8 +165,8 @@ class Net_CONV(nn.Module):
             self.conv_out_height = image[0]
             self.conv_out_width = image[1]
         self.in_features = channels * self.conv_out_height * self.conv_out_width
-
         layers.append(Flatten())
+        # x.view(-1, self.in_features)
         layers.append(nn.Linear(self.in_features, num_classes))
         layers.append(nn.Softmax(dim=-1))
 
@@ -230,6 +234,14 @@ class Train_model():
         self.y_val = data['y_valid'][:interval_2].astype('int32')
         self.y_test = data['y_test'][:interval_2].astype('int32')
 
+        print("MNIST X_train", self.X_train.shape)
+        print("MNIST X_val", self.X_val.shape)
+
+        print("MNIST Y_train", self.y_train.shape)
+        print("MNIST Y_val", self.y_val.shape)
+        print("MNIST Y_train single data", self.y_train[0])
+
+
         self.X_train = get_variable(torch.from_numpy(self.X_train))
         self.y_train = get_variable(torch.from_numpy(onehot(self.y_train,num_classes))).float()
 
@@ -253,6 +265,13 @@ class Train_model():
         print("Training dataset size: ", len(train_set))
         print("Validation dataset size: ", len(val_set))
         # print("Testing dataset size: ", len(test_set))
+    
+    def particle_data(self, x_train, y_train, x_val, y_val):
+        self.X_train = x_train
+        self.X_val = x_val
+        
+        self.y_train = y_train
+        self.y_val = y_val
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
@@ -307,10 +326,12 @@ class Train_model():
 
         early_stop = True
 
-        accuracies, losses, val_accuracies, val_losses = [], [], [], []
+        accuracies, losses, val_accuracies, val_losses, r2_scores, val_r2_scores = [], [], [], [], [], []
 
         train_loader = math.ceil(len(self.X_train)/train_batch_size)
         val_loader = math.ceil(len(self.X_val)/val_batch_size)
+
+        print("train_loader:", train_loader)
 
         # Variables used for EarlyStopping
         es_old_val, es_new_val, counter = 0, 0, 0
@@ -321,7 +342,7 @@ class Train_model():
 
             # --------------- train the model --------------- #
             for batch in range(train_loader):
-
+                
                 optimizer.zero_grad()
 
                 if batch == (train_loader - 1):
@@ -329,7 +350,10 @@ class Train_model():
                 else:
                     slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
 
+                #print(self.X_train[slce].shape)
+                
                 preds = net(self.X_train[slce])
+                # print("preds[0], self.y_train[0]", preds[0], self.y_train[0])
                 loss = cross_entropy(preds, self.y_train[slce])
 
                 loss.backward()
@@ -351,6 +375,7 @@ class Train_model():
 
                 val_loss = cross_entropy(val_preds, self.y_val[val_slce])
                 val_acc = accuracy(val_preds, self.y_val[val_slce])
+
                 val_losses.append(val_loss.cpu().data.numpy())
                 val_accuracies.append(val_acc)
 
@@ -370,22 +395,144 @@ class Train_model():
                         es_old_val = float(val_acc)
 
             #if e % 10 == 0:
-            #fsprint("Epoch %i: "
-            #    "Train Accuracy: %0.3f"
-            #    "\tVal Accuracy: %0.3f"
-            #    "\tTrain Loss: %0.3f"
-            #    "\tVal Loss: %0.3f"
-            #    % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+            print("Epoch %i: "
+            "TrainAcc: %0.3f"
+            "\tValAcc: %0.3f"
+            "\tTrainLoss: %0.3f"
+            "\tValLoss: %0.3f"
+            "\tTrainR2: %0.3f"
+            "\tValR2: %0.3f"
+            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
 
 
+        
         # --------------- test the model --------------- #
-        test_preds = net(self.X_test)
-        test_loss = cross_entropy(test_preds, self.y_test)
-        test_acc = accuracy(test_preds, self.y_test)
+        # test_preds = net(self.X_test)
+        # test_loss = cross_entropy(test_preds, self.y_test)
+        # test_acc = accuracy(test_preds, self.y_test)
 
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
+        
+        if plot:
+            # self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
+            self.plotter(r2_scores, losses, val_r2_scores, val_losses)
+
+        return val_accuracies[-1]
+
+    
+    def particle_train(self,net,train_batch_size,val_batch_size, plot):
+    
+        if self.params["opt"] is "Adam":
+            optimizer = optim.Adam(net.parameters(), lr=self.params["lr"])
+
+        elif self.params["opt"] is "SGD":
+            optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
+
+        early_stop = True
+
+        accuracies, losses, val_accuracies, val_losses, r2_scores, val_r2_scores = [], [], [], [], [], []
+
+        train_loader = math.ceil(len(self.X_train)/train_batch_size)
+        val_loader = math.ceil(len(self.X_val)/val_batch_size)
+
+        print("train_loader:", train_loader)
+
+        # Variables used for EarlyStopping
+        es_old_val, es_new_val, counter = 0, 0, 0
+        es_range = 0.001
+        es_limit = 30
+
+        for e in range(self.params["num_epochs"]):
+
+            # --------------- train the model --------------- #
+            for batch in range(train_loader):
+                
+                optimizer.zero_grad()
+
+                if batch == (train_loader - 1):
+                    slce = slice(batch * train_batch_size, -1)
+                else:
+                    slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
+
+                #print(self.X_train[slce].shape)
+                
+                preds = net(self.X_train[slce])
+                # print("preds[0], self.y_train[0]", preds[0], self.y_train[0])
+                loss = mse_loss(preds, self.y_train[slce])
+                #loss = cross_entropy(preds, self.y_train[slce])
+
+                loss.backward()
+                optimizer.step()
+
+                r2_score = sklearn.metrics.r2_score(self.y_train[slce].cpu().detach().numpy(), preds.cpu().detach().numpy())
+                r2_scores.append(r2_score)
+
+                acc = accuracy(preds, self.y_train[slce])
+                accuracies.append(acc)
+                losses.append(loss.cpu().data.numpy())
+
+            # --------------- validate the model --------------- #
+            for batch in range(val_loader):
+
+                if batch == (val_loader - 1):
+                    val_slce = slice(batch * val_batch_size, -1)
+                else:
+                    val_slce = slice(batch * val_batch_size, (batch + 1) * val_batch_size)
+
+                val_preds = net(self.X_val[val_slce])
+
+                # val_loss = cross_entropy(val_preds, self.y_val[val_slce])
+                val_loss = mse_loss(preds, self.y_train[slce])
+                val_acc = accuracy(val_preds, self.y_val[val_slce])
+
+                val_r2_score = sklearn.metrics.r2_score(self.y_val[val_slce].cpu().detach().numpy(), val_preds.cpu().detach().numpy())
+                val_r2_scores.append(val_r2_score)
+
+                val_losses.append(val_loss.cpu().data.numpy())
+                val_accuracies.append(val_acc)
+
+            if early_stop:
+                # EarlyStopping
+                if e == 0:
+                    es_old_val = float(val_acc)
+                else:
+                    es_new_val = float(val_acc)
+
+                    if abs(es_old_val - es_new_val) <= es_range:
+                        counter += 1
+                        if counter == es_limit:
+                            break
+                    else:
+                        counter = 0
+                        es_old_val = float(val_acc)
+
+            #if e % 10 == 0:
+            print("Epoch %i: "
+            "TrainAcc: %0.3f"
+            "\tValAcc: %0.3f"
+            "\tTrainLoss: %0.3f"
+            "\tValLoss: %0.3f"
+            "\tTrainR2: %0.3f"
+            "\tValR2: %0.3f"
+            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1], r2_scores[-1], val_r2_scores[-1]))
+
+
+        
+        # --------------- test the model --------------- #
+        # test_preds = net(self.X_test)
+        # test_loss = cross_entropy(test_preds, self.y_test)
+        # test_acc = accuracy(test_preds, self.y_test)
+
+        #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
+
+        # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
+        
+        if plot:
+            # self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
+            self.plotter(r2_scores, losses, val_r2_scores, val_losses)
+
         return val_accuracies[-1]
 
     def train_conv(self, net, plot):
@@ -562,3 +709,6 @@ if test:
         print(net)
 
         val_accuracy = train_m.train_conv(net, plot)
+
+
+
