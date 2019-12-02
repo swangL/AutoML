@@ -41,7 +41,7 @@ def trainer(epochs,data_set,lr):
     elif data_set == "MNIST":
         train_m.mnist_data(num_classes=10)
     elif data_set == "CONV":
-        train_m.conv_data(data_set_name='FASHION',batch_size_train=64, batch_size_val=32)
+        train_m.conv_data(data_set_name='MNIST',batch_size_train=64, batch_size_val=32)
 
     for e in range(epochs):
 

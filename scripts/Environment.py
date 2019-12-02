@@ -12,6 +12,7 @@ from torchvision import datasets
 from torchvision import transforms
 from torch.autograd import Variable
 from helpers import get_variable
+import itertools
 
 torch.manual_seed(0)
 
@@ -264,14 +265,23 @@ class Train_model():
         if data_set_name == 'FASHION':
             train_set = datasets.FashionMNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.FashionMNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
+            
         elif data_set_name == 'MNIST':
             train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
             val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+            
+            train_split_len = 6000
+            val_split_len = 900
+
+            train_set = torch.utils.data.random_split(train_set, [train_split_len, len(train_set)-train_split_len])[0]
+            val_set = torch.utils.data.random_split(val_set, [val_split_len, len(val_set)-val_split_len])[0]
+
         elif data_set_name == 'CIFAR':
             train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
 
-        # val_set, test_set = torch.utils.data.random_split(test_set, [int(0.9 * len(test_set)), int(0.1 * len(test_set))])
+        # train_set = torch.utils.data.random_split(test_set, [int(0.9 * len(test_set)), int(0.1 * len(test_set))])
+        # rand = random.randint(1,tra)
 
         self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=False)
         self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False)
@@ -279,8 +289,6 @@ class Train_model():
 
         print("Training dataset size: ", len(train_set))
         print("Validation dataset size: ", len(val_set))
-
-
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
@@ -453,9 +461,11 @@ class Train_model():
 
             # --------------- train the model --------------- #
             for itr, (image_train, label_train) in enumerate(self.train_loader):
+
                 image_train, label_train = get_variable(image_train), get_variable(label_train)
                 optimizer.zero_grad()
                 preds = net(image_train)
+                # print("Length of train preds: ", len(preds))
                 loss = criterion(preds, label_train)
                 loss.backward()
                 optimizer.step()
@@ -468,8 +478,10 @@ class Train_model():
             net.eval()
             # --------------- validate the model --------------- #
             for itr, (image_val, label_val) in enumerate(self.val_loader):
+                
                 image_val, label_val = get_variable(image_val), get_variable(label_val)
                 val_preds = net(image_val)
+                # print("Length of val_preds: ", len(val_preds))
                 val_loss = criterion(val_preds, label_val)
                 val_acc = conv_accuracy(val_preds, label_val)
                 # val_losses.append(val_loss.data.numpy())
@@ -551,7 +563,7 @@ if test:
         "lr": 0.01
     }
 
-    data_set = "MOONS"
+    data_set = "CONV"
     train_m = Train_model(params)
     layers = []
     # Set get_variables used to train neural network
