@@ -286,6 +286,9 @@ class Train_model():
         self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=False)
         self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False)
         # self.test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size_val, shuffle=True)
+        
+        # image, label = next(iter(self.train_loader))
+        #print(image.shape)
 
         print("Training dataset size: ", len(train_set))
         print("Validation dataset size: ", len(val_set))
