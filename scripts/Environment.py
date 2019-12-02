@@ -227,7 +227,7 @@ class Train_model():
     def mnist_data(self, num_classes):
 
         # Import dataset
-        data = np.load('scripts/mnist.npz')
+        data = np.load('mnist.npz')
 
         # Define interval used to split data into
         # train, val and test
