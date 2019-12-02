@@ -17,9 +17,6 @@ from sklearn import metrics
 
 torch.manual_seed(0)
 
-start = torch.cuda.Event(enable_timing=True)
-end = torch.cuda.Event(enable_timing=True)
-
 def mse_loss(ys, ts):
     return torch.mean((ys-ts)**2)
     

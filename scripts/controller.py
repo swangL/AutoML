@@ -115,6 +115,8 @@ class Controller(nn.Module):
         # unsqueeze to have correct dim for lstm
         if self.Conv:
             choice = block_id%3
+        elif self.type == "divnot":
+            choice = block_id
         else:
             choice = block_id%2
         if self.GRU:
@@ -140,7 +142,7 @@ class Controller(nn.Module):
     def loss(self, log_prob, accuracy , baseline):
         R = torch.ones(1)*(accuracy+self.reward)
         if self.ent:
-            return -(torch.mean(torch.mul(log_prob, get_variable(R)))+torch.mean(torch.tensor(self.entropies))*0.01)
+            return -(torch.mean(torch.mul(log_prob, get_variable(R)))+torch.mean(torch.tensor(self.entropies))*0.05)
         return -torch.mean(torch.mul(log_prob, get_variable(R)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
@@ -197,12 +199,12 @@ class Controller(nn.Module):
                     arch.append(activations_dict[int(action)])
                 else:
                     value = sizes_dict[int(action)]
-                    if self.type == "not":
+                    if self.type == "not" or self.type == "divnot":
                         if isinstance(value, str) and value == "term" and block_id < 3: # should have at least two layers
                             self.reward -= 1
                     elif self.type == "antit":
                         if isinstance(value, str) and value == "term":
-                            self.reward -= 0.1*block_id #if terminated penalize just slightly always
+                            self.reward -= 0.05*(num_blocks*2+1-block_id)  #if terminated penalize just slightly always
                     if value=="term":
                         break
                     else:
@@ -298,7 +300,7 @@ class CollectedController(nn.Module):
                 self.reward -= 0.1
             if self.type == "antit":
                 if isinstance(action, str) and action == "term":
-                    self.reward -= 0.1*block_id #if terminated penalize just slightly always
+                    self.reward -= 0.05*(num_blocks*2+1-block_id) #if terminated penalize just slightly always
             self.actions.append(action)
             log_probs.append(log_prob.gather(0,value))
             #append to return list which is used as the probs
