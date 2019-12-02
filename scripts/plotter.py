@@ -11,14 +11,35 @@ if __name__ == '__main__':
 
     print(parameters)
     # Smoothes out the plot a bit
-    accs = np.convolve(accs, np.ones((5,))/5, mode='valid')
+    N = 100
+    cumsum, moving_aves = [0], []
+    for i, x in enumerate(accs, 1):
+        cumsum.append(cumsum[i-1] + x)
+        if i>=N:
+            moving_ave = (cumsum[i] - cumsum[i-N])/N
+            #can do stuff with moving_ave here
+            moving_aves.append(moving_ave)
+
+    N = 30
+    cumsum, moving_aves_std = [0], []
+    for i, x in enumerate(accs, 1):
+        cumsum.append(cumsum[i-1] + x)
+        if i>=N:
+            moving_ave = (cumsum[i] - cumsum[i-N])/N
+            #can do stuff with moving_ave here
+            moving_aves_std.append(moving_ave)
+
+            
+    moving_aves = np.array(moving_aves)
+    moving_aves_std = np.array(moving_aves_std)
+    #accs = np.convolve(accs, np.ones((5,))/5, mode='valid')
     losses = np.convolve(losses, np.ones((5,))/5, mode='valid')
     print("acc:", np.sum(accs[-100:])/len(accs[-100:]))
-
     # Generate the figure
     sns.set(style='darkgrid')
     plt.figure()
-    plt.plot(range(len(accs)), accs)
+    plt.plot(range(len(moving_aves_std)),moving_aves_std,alpha=0.3)
+    plt.plot(range(len(moving_aves)), moving_aves,alpha=1,color='orange')
     plt.xlabel('Rollout')
     plt.ylabel('Accuracy')
 
