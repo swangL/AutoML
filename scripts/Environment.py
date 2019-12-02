@@ -269,8 +269,8 @@ class Train_model():
             train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             
-            train_split_len = 1000
-            val_split_len = 150
+            train_split_len = 4000
+            val_split_len = 600
 
             train_set = torch.utils.data.random_split(train_set, [train_split_len, len(train_set)-train_split_len])[0]
             val_set = torch.utils.data.random_split(val_set, [val_split_len, len(val_set)-val_split_len])[0]
