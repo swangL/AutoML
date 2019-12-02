@@ -76,7 +76,6 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
     for e in range(epochs):
 
-
         arch,probs = cont.sample()
         #Notice here we also get the probability of the termination!
 
