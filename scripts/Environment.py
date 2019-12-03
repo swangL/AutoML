@@ -14,8 +14,12 @@ from torch.autograd import Variable
 from helpers import get_variable
 import itertools
 
+
 torch.manual_seed(0)
 
+def mse_loss(ys, ts):
+    return torch.mean((ys-ts)**2)
+    
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     ys = torch.argmax(ys,dim=-1)
@@ -113,7 +117,7 @@ class Net_MNIST(nn.Module):
 
         # Last layer with output 2 representing the two classes
         layers.append(nn.Linear(num_input, num_classes))
-        layers.append(nn.Softmax(dim=-1))
+        # layers.append(nn.Softmax(dim=-1))
 
 # Network
 class Net_CONV(nn.Module):
@@ -178,6 +182,7 @@ class Net_CONV(nn.Module):
 
         layers.append(Flatten())
         #layers.append(nn.Dropout(0.5))
+
         layers.append(nn.Linear(self.in_features, num_classes))
         layers.append(nn.Softmax(dim=-1))
 
@@ -245,6 +250,14 @@ class Train_model():
         self.y_val = data['y_valid'][interval_1:interval_1+interval_2].astype('int32')
         self.y_test = data['y_test'][interval_1+interval_2:].astype('int32')
 
+        print("MNIST X_train", self.X_train.shape)
+        print("MNIST X_val", self.X_val.shape)
+
+        print("MNIST Y_train", self.y_train.shape)
+        print("MNIST Y_val", self.y_val.shape)
+        print("MNIST Y_train single data", self.y_train[0])
+
+
         self.X_train = get_variable(torch.from_numpy(self.X_train))
         self.y_train = get_variable(torch.from_numpy(onehot(self.y_train,num_classes))).float()
 
@@ -291,6 +304,14 @@ class Train_model():
 
         print("Training dataset size: ", len(train_set))
         print("Validation dataset size: ", len(val_set))
+        # print("Testing dataset size: ", len(test_set))
+    
+    def particle_data(self, x_train, y_train, x_val, y_val):
+        self.X_train = x_train
+        self.X_val = x_val
+        
+        self.y_train = y_train
+        self.y_val = y_val
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
@@ -343,10 +364,15 @@ class Train_model():
         elif self.params["opt"] is "SGD":
             optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
-        accuracies, losses, val_accuracies, val_losses = [], [], [], []
+
+        early_stop = True
+
+        accuracies, losses, val_accuracies, val_losses, r2_scores, val_r2_scores = [], [], [], [], [], []
 
         train_loader = math.ceil(len(self.X_train)/train_batch_size)
         val_loader = math.ceil(len(self.X_val)/val_batch_size)
+
+        print("train_loader:", train_loader)
 
         # Variables used for EarlyStopping
         early_stop = True
@@ -360,7 +386,7 @@ class Train_model():
 
             # --------------- train the model --------------- #
             for batch in range(train_loader):
-
+                
                 optimizer.zero_grad()
 
                 if batch == (train_loader - 1):
@@ -368,7 +394,10 @@ class Train_model():
                 else:
                     slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
 
+                #print(self.X_train[slce].shape)
+                
                 preds = net(self.X_train[slce])
+                # print("preds[0], self.y_train[0]", preds[0], self.y_train[0])
                 loss = cross_entropy(preds, self.y_train[slce])
 
                 loss.backward()
@@ -405,6 +434,7 @@ class Train_model():
             losses.append(np.mean(batch_losses))
             val_losses.append(np.mean(batch_val_losses))
 
+
             if early_stop:
                 # EarlyStopping
                 if e == 0:
@@ -429,17 +459,25 @@ class Train_model():
                 % (e, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
 
 
+        
         # --------------- test the model --------------- #
-        test_preds = net(self.X_test)
-        test_loss = cross_entropy(test_preds, self.y_test)
-        test_acc = accuracy(test_preds, self.y_test)
+        # test_preds = net(self.X_test)
+        # test_loss = cross_entropy(test_preds, self.y_test)
+        # test_acc = accuracy(test_preds, self.y_test)
 
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
+        
+        if plot:
+            # self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
+            self.plotter(r2_scores, losses, val_r2_scores, val_losses)
+
         return val_accuracies[-1]
 
-    def train_conv(self, net, plot):
+    
+    def particle_train(self,net,train_batch_size,val_batch_size, plot):
+    
         if self.params["opt"] is "Adam":
             optimizer = optim.Adam(net.parameters(), lr=self.params["lr"])
 
@@ -516,10 +554,12 @@ class Train_model():
             #if e % 10 == 0:
             print("Epoch %i: "
             "TrainAcc: %0.3f"
+
             "\tValAcc: %0.3f"  
             "\tTrainLoss: %0.3f" 
             "\tValLoss: %0.3f" 
             % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]), flush=False)
+
 
             '''
             plot_accuracies.append(accuracies[-1])
