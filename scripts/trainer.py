@@ -4,7 +4,7 @@ from controller import Controller as ct
 from controller import CollectedController
 import matplotlib.pyplot as plt
 from Environment import *
-
+ 
 
 num_rollouts = 10
 
