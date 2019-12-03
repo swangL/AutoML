@@ -6,7 +6,7 @@ import seaborn as sns
 
 if __name__ == '__main__':
 
-    with open('rewards_losses.pkl', 'rb') as handle:
+    with open('/Users/mariana/AutoML/runs/171320-02122019/rewards_losses.pkl', 'rb') as handle:
         accs, losses = pkl.load(handle)
 
     # Smoothes out the plot a bit

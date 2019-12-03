@@ -621,10 +621,10 @@ if test:
 
         val_accuracy = train_m.train_conv(net, plot)
 
-'''
+
 import pickle
 
-with open('/Users/mariana/AutoML/runs/151024-01122019/rewards_losses.pkl', 'rb') as f:
+with open('/Users/mariana/AutoML/runs/171320-02122019/rewards_losses.pkl', 'rb') as f:
     data = pickle.load(f)
 
 
@@ -650,7 +650,7 @@ plt.xlabel('Updates')
 plt.ylabel('Accuracy')
 plt.show()
 
-'''
+
 
 # FASHIONMNIST results
 # For test_string = ['6','3', 'ReLU', '6','3', 'ReLU']
