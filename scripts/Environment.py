@@ -430,118 +430,6 @@ class Train_model():
         elif self.params["opt"] is "SGD":
             optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
-        early_stop = True
-
-        accuracies, losses, val_accuracies, val_losses, r2_scores, val_r2_scores = [], [], [], [], [], []
-
-        train_loader = math.ceil(len(self.X_train)/train_batch_size)
-        val_loader = math.ceil(len(self.X_val)/val_batch_size)
-
-        print("train_loader:", train_loader)
-
-        # Variables used for EarlyStopping
-        es_old_val, es_new_val, counter = 0, 0, 0
-        es_range = 0.001
-        es_limit = 30
-
-        for e in range(self.params["num_epochs"]):
-
-            # --------------- train the model --------------- #
-            for batch in range(train_loader):
-                
-                optimizer.zero_grad()
-
-                if batch == (train_loader - 1):
-                    slce = slice(batch * train_batch_size, -1)
-                else:
-                    slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
-
-                #print(self.X_train[slce].shape)
-                
-                preds = net(self.X_train[slce])
-                # print("preds[0], self.y_train[0]", preds[0], self.y_train[0])
-                loss = mse_loss(preds, self.y_train[slce])
-                #loss = cross_entropy(preds, self.y_train[slce])
-
-                loss.backward()
-                optimizer.step()
-
-                r2_score = sklearn.metrics.r2_score(self.y_train[slce].cpu().detach().numpy(), preds.cpu().detach().numpy())
-                r2_scores.append(r2_score)
-
-                acc = accuracy(preds, self.y_train[slce])
-                accuracies.append(acc)
-                losses.append(loss.cpu().data.numpy())
-
-            # --------------- validate the model --------------- #
-            for batch in range(val_loader):
-
-                if batch == (val_loader - 1):
-                    val_slce = slice(batch * val_batch_size, -1)
-                else:
-                    val_slce = slice(batch * val_batch_size, (batch + 1) * val_batch_size)
-
-                val_preds = net(self.X_val[val_slce])
-
-                # val_loss = cross_entropy(val_preds, self.y_val[val_slce])
-                val_loss = mse_loss(preds, self.y_train[slce])
-                val_acc = accuracy(val_preds, self.y_val[val_slce])
-
-                val_r2_score = sklearn.metrics.r2_score(self.y_val[val_slce].cpu().detach().numpy(), val_preds.cpu().detach().numpy())
-                val_r2_scores.append(val_r2_score)
-
-                val_losses.append(val_loss.cpu().data.numpy())
-                val_accuracies.append(val_acc)
-
-            if early_stop:
-                # EarlyStopping
-                if e == 0:
-                    es_old_val = float(val_acc)
-                else:
-                    es_new_val = float(val_acc)
-
-                    if abs(es_old_val - es_new_val) <= es_range:
-                        counter += 1
-                        if counter == es_limit:
-                            break
-                    else:
-                        counter = 0
-                        es_old_val = float(val_acc)
-
-            #if e % 10 == 0:
-            print("Epoch %i: "
-            "TrainAcc: %0.3f"
-            "\tValAcc: %0.3f"
-            "\tTrainLoss: %0.3f"
-            "\tValLoss: %0.3f"
-            "\tTrainR2: %0.3f"
-            "\tValR2: %0.3f"
-            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1], r2_scores[-1], val_r2_scores[-1]))
-
-
-        
-        # --------------- test the model --------------- #
-        # test_preds = net(self.X_test)
-        # test_loss = cross_entropy(test_preds, self.y_test)
-        # test_acc = accuracy(test_preds, self.y_test)
-
-        #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
-
-        # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
-        
-        if plot:
-            # self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
-            self.plotter(r2_scores, losses, val_r2_scores, val_losses)
-
-        return val_accuracies[-1]
-
-    def train_conv(self, net, plot):
-        if self.params["opt"] is "Adam":
-            optimizer = optim.Adam(net.parameters(), lr=self.params["lr"])
-
-        elif self.params["opt"] is "SGD":
-            optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
-
         criterion = nn.CrossEntropyLoss()
         accuracies, losses, val_accuracies, val_losses, test_accuracies, test_losses = [], [], [], [], [], []
         plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses = [], [], [], []
@@ -608,10 +496,12 @@ class Train_model():
             #if e % 10 == 0:
             print("Epoch %i: "
             "TrainAcc: %0.3f"
-            "\tValAcc: %0.3f"
-            "\tTrainLoss: %0.3f"
-            "\tValLoss: %0.3f"
-            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+
+            "\tValAcc: %0.3f"  
+            "\tTrainLoss: %0.3f" 
+            "\tValLoss: %0.3f" 
+            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]), flush=True)
+
 
             '''
             plot_accuracies.append(accuracies[-1])
@@ -709,6 +599,3 @@ if test:
         print(net)
 
         val_accuracy = train_m.train_conv(net, plot)
-
-
-

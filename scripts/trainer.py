@@ -63,7 +63,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     plot = False
 
     params = {
-        "num_epochs": 500,
+        "num_epochs": 200,
         "opt": "Adam",
         "lr": 0.01
     }
@@ -106,6 +106,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
                 #print('#converting child to cuda-enabled', flush=True)
                 net.cuda()
             accuracy = train_m.train_conv(net=net, plot=plot)
+
 
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         accuracy = torch.tensor(accuracy)
