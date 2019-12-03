@@ -4,7 +4,7 @@ from controller import Controller as ct
 from controller import CollectedController
 import matplotlib.pyplot as plt
 from Environment import *
- 
+
 
 num_rollouts = 10
 
@@ -64,7 +64,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
     params = {
         "num_epochs": 200,
-        "opt": "Adam",
+        "opt": "SGD",
         "lr": 0.01
     }
 
@@ -75,7 +75,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     elif data_set == "MNIST":
         train_m.mnist_data(num_classes=10)
     elif data_set == "CONV":
-        train_m.conv_data(batch_size_train=64, batch_size_val=32)
+        train_m.conv_data(data_set_name='MNIST',batch_size_train=64, batch_size_val=32)
 
     for e in range(epochs):
 
@@ -88,6 +88,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         if data_set == "MOONS":
             network = Net_MOONS(string=arch, in_features=2, num_classes=2, layers=layers)
             net = nn.Sequential(*layers)
+
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
                 net.cuda()
@@ -95,13 +96,16 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         elif data_set == "MNIST":
             network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
+
                 net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "CONV":
-            network = Net_CONV(string=arch, in_channels=1, num_classes=10, layers=layers)
+            network = Net_CONV(string=arch, img_size=28, in_channels=1, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+            print(net)
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
                 net.cuda()
@@ -145,6 +149,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
 
 def main():
+    
     epochs = 10
     net_type = "MOONS"
     lr = 0.01
