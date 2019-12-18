@@ -1,0 +1,159 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+1000/10000
+Arch []
+acc tensor(0.8392)
+loss tensor(0.2519, device='cuda:0', grad_fn=<NegBackward>)
+
+2000/10000
+Arch []
+acc tensor(0.8241)
+loss tensor(0.2317, device='cuda:0', grad_fn=<NegBackward>)
+
+3000/10000
+Arch []
+acc tensor(0.7839)
+loss tensor(0.2168, device='cuda:0', grad_fn=<NegBackward>)
+
+4000/10000
+Arch []
+acc tensor(0.7839)
+loss tensor(0.2152, device='cuda:0', grad_fn=<NegBackward>)
+
+5000/10000
+Arch []
+acc tensor(0.8141)
+loss tensor(0.2227, device='cuda:0', grad_fn=<NegBackward>)
+
+6000/10000
+Arch [2, 'Sigmoid']
+acc tensor(0.8241)
+loss tensor(1.4660, device='cuda:0', grad_fn=<NegBackward>)
+
+7000/10000
+Arch []
+acc tensor(0.8442)
+loss tensor(0.2303, device='cuda:0', grad_fn=<NegBackward>)
+
+8000/10000
+Arch [4, 'Sigmoid']
+acc tensor(0.8643)
+loss tensor(1.2261, device='cuda:0', grad_fn=<NegBackward>)
+
+9000/10000
+Arch []
+acc tensor(0.7839)
+loss tensor(0.2137, device='cuda:0', grad_fn=<NegBackward>)
+
+10000/10000
+Arch []
+acc tensor(0.8392)
+loss tensor(0.2287, device='cuda:0', grad_fn=<NegBackward>)
+
+##converting Controller to cuda-enabled
+1000/10000
+Arch []
+acc tensor(0.8357)
+loss tensor(0.2442, device='cuda:0', grad_fn=<NegBackward>)
+
+2000/10000
+Arch []
+acc tensor(0.8397)
+loss tensor(0.2342, device='cuda:0', grad_fn=<NegBackward>)
+
+3000/10000
+Arch []
+acc tensor(0.8377)
+loss tensor(0.2307, device='cuda:0', grad_fn=<NegBackward>)
+
+4000/10000
+Arch []
+acc tensor(0.8277)
+loss tensor(0.2267, device='cuda:0', grad_fn=<NegBackward>)
+
+5000/10000
+Arch []
+acc tensor(0.8317)
+loss tensor(0.2272, device='cuda:0', grad_fn=<NegBackward>)
+
+6000/10000
+Arch [2, 'Tanh', 2, 'ReLU']
+acc tensor(0.3006)
+loss tensor(0.5777, device='cuda:0', grad_fn=<NegBackward>)
+
+7000/10000
+Arch []
+acc tensor(0.8337)
+loss tensor(0.2273, device='cuda:0', grad_fn=<NegBackward>)
+
+8000/10000
+Arch []
+acc tensor(0.8377)
+loss tensor(0.2283, device='cuda:0', grad_fn=<NegBackward>)
+
+9000/10000
+Arch []
+acc tensor(0.8357)
+loss tensor(0.2277, device='cuda:0', grad_fn=<NegBackward>)
+
+10000/10000
+Arch []
+acc tensor(0.8317)
+loss tensor(0.2266, device='cuda:0', grad_fn=<NegBackward>)
+
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-12>
+Subject: Job 4818665: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <n-62-27-19> by user <s174007> in cluster <dcc> at Sun Dec  1 23:16:21 2019
+Job was executed on host(s) <n-62-20-12>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Mon Dec  2 03:22:45 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Mon Dec  2 03:22:45 2019
+Terminated at Mon Dec  2 04:44:34 2019
+Results reported at Mon Dec  2 04:44:34 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/gruco%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01 antitct
+python3 train.py 10000 MNIST 0.01 antitct
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   4894.32 sec.
+    Max Memory :                                 1904 MB
+    Average Memory :                             1872.43 MB
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               4240.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   4910 sec.
+    Turnaround time :                            19693 sec.
+
+The output (if any) is above this job summary.
+

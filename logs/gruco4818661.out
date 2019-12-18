@@ -1,0 +1,159 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+1000/10000
+Arch [64, 64, 64, 'Tanh', 32]
+acc tensor(0.9899)
+loss tensor(1.5133, device='cuda:0', grad_fn=<NegBackward>)
+
+2000/10000
+Arch ['ReLU', 64, 'Tanh', 2, 64]
+acc tensor(0.9447)
+loss tensor(1.6646, device='cuda:0', grad_fn=<NegBackward>)
+
+3000/10000
+Arch [64, 'Sigmoid', 'Tanh']
+acc tensor(0.8593)
+loss tensor(1.1762, device='cuda:0', grad_fn=<NegBackward>)
+
+4000/10000
+Arch [8, 'Tanh', 32]
+acc tensor(0.9849)
+loss tensor(1.8395, device='cuda:0', grad_fn=<NegBackward>)
+
+5000/10000
+Arch [64, 8, 16]
+acc tensor(0.8593)
+loss tensor(1.3262, device='cuda:0', grad_fn=<NegBackward>)
+
+6000/10000
+Arch [32, 64, 'Tanh']
+acc tensor(0.9799)
+loss tensor(1.0828, device='cuda:0', grad_fn=<NegBackward>)
+
+7000/10000
+Arch [32, 64]
+acc tensor(0.8593)
+loss tensor(-0.3157, device='cuda:0', grad_fn=<NegBackward>)
+
+8000/10000
+Arch ['Sigmoid', 64, 'Tanh', 16]
+acc tensor(0.8593)
+loss tensor(1.2991, device='cuda:0', grad_fn=<NegBackward>)
+
+9000/10000
+Arch [2, 8, 8, 64]
+acc tensor(0.8593)
+loss tensor(1.2004, device='cuda:0', grad_fn=<NegBackward>)
+
+10000/10000
+Arch [32, 'Sigmoid', 'Sigmoid']
+acc tensor(0.8593)
+loss tensor(1.5804, device='cuda:0', grad_fn=<NegBackward>)
+
+##converting Controller to cuda-enabled
+1000/10000
+Arch ['Sigmoid']
+acc tensor(0.8357)
+loss tensor(-0.5591, device='cuda:0', grad_fn=<NegBackward>)
+
+2000/10000
+Arch [2, 'Sigmoid', 'Tanh', 'Tanh', 32]
+acc tensor(0.4669)
+loss tensor(0.5555, device='cuda:0', grad_fn=<NegBackward>)
+
+3000/10000
+Arch ['ReLU', 'ReLU', 64]
+acc tensor(0.1062)
+loss tensor(0.0125, device='cuda:0', grad_fn=<NegBackward>)
+
+4000/10000
+Arch ['ReLU', 'Sigmoid', 'Sigmoid', 32]
+acc tensor(0.4369)
+loss tensor(0.3447, device='cuda:0', grad_fn=<NegBackward>)
+
+5000/10000
+Arch ['Sigmoid', 'Sigmoid', 4, 64, 32, 'Tanh', 'Tanh', 4, 4]
+acc tensor(0.1042)
+loss tensor(-1.0218, device='cuda:0', grad_fn=<NegBackward>)
+
+6000/10000
+Arch [64, 2, 'Sigmoid', 32, 'Tanh']
+acc tensor(0.4489)
+loss tensor(0.6308, device='cuda:0', grad_fn=<NegBackward>)
+
+7000/10000
+Arch [64, 'Sigmoid', 64, 64, 8]
+acc tensor(0.1062)
+loss tensor(-0.1850, device='cuda:0', grad_fn=<NegBackward>)
+
+8000/10000
+Arch [4, 'Sigmoid', 'Sigmoid']
+acc tensor(0.6493)
+loss tensor(0.5842, device='cuda:0', grad_fn=<NegBackward>)
+
+9000/10000
+Arch [64, 4, 'Sigmoid', 'Tanh']
+acc tensor(0.6273)
+loss tensor(0.6955, device='cuda:0', grad_fn=<NegBackward>)
+
+10000/10000
+Arch [64, 'Sigmoid', 'Sigmoid']
+acc tensor(0.8056)
+loss tensor(0.4712, device='cuda:0', grad_fn=<NegBackward>)
+
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-11>
+Subject: Job 4818661: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <n-62-27-19> by user <s174007> in cluster <dcc> at Sun Dec  1 23:16:13 2019
+Job was executed on host(s) <n-62-20-11>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Mon Dec  2 02:51:24 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Mon Dec  2 02:51:24 2019
+Terminated at Mon Dec  2 05:23:36 2019
+Results reported at Mon Dec  2 05:23:36 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/gruco%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01 antitcct
+python3 train.py 10000 MNIST 0.01 antitcct
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   9107.76 sec.
+    Max Memory :                                 1882 MB
+    Average Memory :                             1866.35 MB
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               4262.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   9133 sec.
+    Turnaround time :                            22043 sec.
+
+The output (if any) is above this job summary.
+
