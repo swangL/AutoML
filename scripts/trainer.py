@@ -43,6 +43,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         "opt": "Adam",
         "lr": 0.01
     }
+    decay = 0.05
     baseline = 0.85
     train_m = Train_model(params)
 
@@ -106,7 +107,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
         # moving average baseline
         if cttype == "moving" or cttype == "emoving":
-            decay = 0.05
+            decay *= 0.999 #lets use three nines
             rewards = accuracy
             baseline = decay * baseline + (1 - decay) * rewards
         loss = cont.loss(probs,accuracy,baseline)
