@@ -128,7 +128,7 @@ class Controller(nn.Module):
     def sample(self):
         self.reward = 0
         self.entropies = []
-        self.gamma*=0.9
+        self.gamma*=0.999
         # tuple of h and c
         hidden = get_variable(torch.zeros(1,hidden_dim), requires_grad=False)
         input = get_variable(torch.zeros(1,hidden_dim), requires_grad=False)
