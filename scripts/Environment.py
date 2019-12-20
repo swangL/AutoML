@@ -19,7 +19,7 @@ torch.manual_seed(0)
 
 def mse_loss(ys, ts):
     return torch.mean((ys-ts)**2)
-    
+
 def accuracy(ys, ts):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     ys = torch.argmax(ys,dim=-1)
@@ -265,11 +265,11 @@ class Train_model():
         print("Training dataset size: ", len(train_set))
         print("Validation dataset size: ", len(val_set))
         # print("Testing dataset size: ", len(test_set))
-    
+
     def particle_data(self, x_train, y_train, x_val, y_val):
         self.X_train = x_train
         self.X_val = x_val
-        
+
         self.y_train = y_train
         self.y_val = y_val
 
@@ -331,8 +331,6 @@ class Train_model():
         train_loader = math.ceil(len(self.X_train)/train_batch_size)
         val_loader = math.ceil(len(self.X_val)/val_batch_size)
 
-        print("train_loader:", train_loader)
-
         # Variables used for EarlyStopping
         es_old_val, es_new_val, counter = 0, 0, 0
         es_range = 0.001
@@ -342,7 +340,7 @@ class Train_model():
 
             # --------------- train the model --------------- #
             for batch in range(train_loader):
-                
+
                 optimizer.zero_grad()
 
                 if batch == (train_loader - 1):
@@ -351,7 +349,7 @@ class Train_model():
                     slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
 
                 #print(self.X_train[slce].shape)
-                
+
                 preds = net(self.X_train[slce])
                 # print("preds[0], self.y_train[0]", preds[0], self.y_train[0])
                 loss = cross_entropy(preds, self.y_train[slce])
@@ -394,18 +392,18 @@ class Train_model():
                         counter = 0
                         es_old_val = float(val_acc)
 
-            #if e % 10 == 0:
-            print("Epoch %i: "
-            "TrainAcc: %0.3f"
-            "\tValAcc: %0.3f"
-            "\tTrainLoss: %0.3f"
-            "\tValLoss: %0.3f"
-            "\tTrainR2: %0.3f"
-            "\tValR2: %0.3f"
-            % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
+            # #if e % 10 == 0:
+            # print("Epoch %i: "
+            # "TrainAcc: %0.3f"
+            # "\tValAcc: %0.3f"
+            # "\tTrainLoss: %0.3f"
+            # "\tValLoss: %0.3f"
+            # "\tTrainR2: %0.3f"
+            # "\tValR2: %0.3f"
+            # % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1]))
 
 
-        
+
         # --------------- test the model --------------- #
         # test_preds = net(self.X_test)
         # test_loss = cross_entropy(test_preds, self.y_test)
@@ -414,16 +412,16 @@ class Train_model():
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
-        
+
         if plot:
             # self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
             self.plotter(r2_scores, losses, val_r2_scores, val_losses)
 
         return val_accuracies[-1]
 
-    
+
     def particle_train(self,net,train_batch_size,val_batch_size, plot):
-    
+
         if self.params["opt"] is "Adam":
             optimizer = optim.Adam(net.parameters(), lr=self.params["lr"])
 
@@ -448,7 +446,7 @@ class Train_model():
 
             # --------------- train the model --------------- #
             for batch in range(train_loader):
-                
+
                 optimizer.zero_grad()
 
                 if batch == (train_loader - 1):
@@ -457,7 +455,7 @@ class Train_model():
                     slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
 
                 #print(self.X_train[slce].shape)
-                
+
                 preds = net(self.X_train[slce])
                 # print("preds[0], self.y_train[0]", preds[0], self.y_train[0])
                 loss = mse_loss(preds, self.y_train[slce])
@@ -519,7 +517,7 @@ class Train_model():
             % (e+1, accuracies[-1], val_accuracies[-1], losses[-1], val_losses[-1], r2_scores[-1], val_r2_scores[-1]))
 
 
-        
+
         # --------------- test the model --------------- #
         # test_preds = net(self.X_test)
         # test_loss = cross_entropy(test_preds, self.y_test)
@@ -528,7 +526,7 @@ class Train_model():
         #print("Test Accuracy: %0.3f \t Test Loss: %0.3f" % (test_acc.data.numpy(), test_loss.data.numpy()))
 
         # return accuracies[-1], val_accuracies[-1], test_acc, losses[-1], val_losses[-1], test_loss
-        
+
         if plot:
             # self.plotter(plot_accuracies, plot_losses, plot_val_accuracies, plot_val_losses)
             self.plotter(r2_scores, losses, val_r2_scores, val_losses)
@@ -709,6 +707,3 @@ if test:
         print(net)
 
         val_accuracy = train_m.train_conv(net, plot)
-
-
-

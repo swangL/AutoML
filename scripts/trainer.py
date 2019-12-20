@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 from controller import Controller as ct
-from controller import CollectedController
 import matplotlib.pyplot as plt
 from Environment import *
 
@@ -15,38 +14,15 @@ num_rollouts = 10
 def trainer(epochs,data_set,lr, cttype="ct"):
 
     # Change HERE if conv = True
-    if cttype == "ct":
+    if cttype == "const":
         cont = ct(lr)
-    elif cttype == "cct":
-        cont = CollectedController(lr)
-    elif cttype == "conv":
-        cont = ct(lr, True)
-    elif cttype == "gcct":
-        cont = CollectedController(lr, GRU=True)
-    elif cttype == "gct": #####################
-        cont = ct(lr, GRU=True)
-    elif cttype == "egcct":
-        cont = CollectedController(lr, GRU=True, ent=True)
-    elif cttype == "antitgcct":
-        cont = CollectedController(lr, GRU=True, type="anti")
-    elif cttype == "ecct":
-        cont = CollectedController(lr, ent=True)
-    elif cttype == "antitcct":
-        cont = CollectedController(lr, type="anti")
-    elif cttype == "egct":
-        cont = ct(lr, GRU=True, ent=True)
-    elif cttype == "antitgct":
-        cont = ct(lr, GRU=True, type="anti")
-    elif cttype == "notgct":
-        cont = ct(lr, GRU=True, type="not")
-    elif cttype == "ect":
+    elif cttype == "moving":
+        cont = ct(lr)
+    elif cttype == "econst":
         cont = ct(lr, ent=True)
-    elif cttype == "antitct":
-        cont = ct(lr, type="anti")
-    elif cttype == "notct":
-        cont = ct(lr, type="not")
-    elif cttype == "divnotct":
-        cont = ct(lr, type="divnot")
+    elif cttype == "emoving":
+        cont = ct(lr, ent=True)
+
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()
@@ -67,7 +43,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         "opt": "Adam",
         "lr": 0.01
     }
-
+    baseline = 0.85
     train_m = Train_model(params)
 
     if data_set == "MOONS":
@@ -127,15 +103,20 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
         #TODO verify that this is the REINFORCE behaviour that we want
         cont.optimizer.zero_grad()
-        baseline = torch.tensor(0)
+
+        # moving average baseline
+        if cttype == "moving" or cttype == "emoving":
+            decay = 0.05
+            rewards = accuracy
+            baseline = decay * baseline + (1 - decay) * rewards
         loss = cont.loss(probs,accuracy,baseline)
         if (e+1) % (epochs/10) == 0:
             print("{}/{}".format(e+1,epochs), flush=True)
             print("Arch", arch)
             print("acc",accuracy)
             print("loss",loss)
+            print("baseline", baseline)
             print()
-        #print(loss)
         loss_hist.append(float(loss.data))
         loss.backward()
         cont.optimizer.step()
