@@ -14,14 +14,10 @@ num_rollouts = 10
 def trainer(epochs,data_set,lr, cttype="ct"):
 
     # Change HERE if conv = True
-    if cttype == "const":
-        cont = ct(lr)
-    elif cttype == "moving":
-        cont = ct(lr)
-    elif cttype == "econst":
+    if cttype == "econst" or cttype == "emoving" or cttype == "edynamic":
         cont = ct(lr, ent=True)
-    elif cttype == "emoving":
-        cont = ct(lr, ent=True)
+    else:
+        cont = ct(lr)
 
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
@@ -43,7 +39,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         "opt": "Adam",
         "lr": 0.01
     }
-    decay = 0.05
+    decay = 0.95
     baseline = 0.85
     train_m = Train_model(params)
 
@@ -107,9 +103,15 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
         # moving average baseline
         if cttype == "moving" or cttype == "emoving":
-            decay *= 0.999 #lets use three nines
+            decay *= 1.00002
+            if decay > 1:
+                decay = 1
             rewards = accuracy
             baseline = decay * baseline + (1 - decay) * rewards
+        # dynamic baseline
+        if cttype == "dynamic" or cttype == "edynamic":
+            if accuracy>baseline:
+                baseline*=1.01
         loss = cont.loss(probs,accuracy,baseline)
         if (e+1) % (epochs/10) == 0:
             print("{}/{}".format(e+1,epochs), flush=True)
