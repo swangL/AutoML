@@ -1,0 +1,117 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+1000/10000
+Arch [8, 'ReLU', 2, 'Tanh']
+acc tensor(0.9799)
+loss tensor(-0.2494, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+2000/10000
+Arch [64, 'Tanh', 32, 'Tanh', 64, 'Tanh']
+acc tensor(0.9447)
+loss tensor(-0.0252, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+3000/10000
+Arch []
+acc tensor(0.8643)
+loss tensor(0.0063, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+4000/10000
+Arch [64, 'Tanh']
+acc tensor(0.9849)
+loss tensor(0.0107, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+5000/10000
+Arch [64, 'Tanh']
+acc tensor(0.9849)
+loss tensor(0.0175, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+6000/10000
+Arch [64, 'Tanh']
+acc tensor(0.9849)
+loss tensor(0.0171, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+7000/10000
+Arch [64, 'Tanh']
+acc tensor(0.9849)
+loss tensor(0.0169, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+8000/10000
+Arch [64, 'ReLU']
+acc tensor(0.9799)
+loss tensor(0.2154, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+9000/10000
+Arch [64, 'Tanh']
+acc tensor(0.9799)
+loss tensor(0.0167, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+10000/10000
+Arch [64, 'Tanh']
+acc tensor(0.9849)
+loss tensor(0.0174, device='cuda:0', grad_fn=<NegBackward>)
+baseline 0.85
+
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-4>
+Subject: Job 4969705: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Fri Dec 20 11:18:25 2019
+Job was executed on host(s) <n-62-20-4>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Fri Dec 20 11:18:27 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Fri Dec 20 11:18:27 2019
+Terminated at Fri Dec 20 12:15:25 2019
+Results reported at Fri Dec 20 12:15:25 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/co%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01 econst
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   3408.44 sec.
+    Max Memory :                                 1860 MB
+    Average Memory :                             1842.28 MB
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               4284.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   3430 sec.
+    Turnaround time :                            3420 sec.
+
+The output (if any) is above this job summary.
+
