@@ -103,7 +103,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
         # moving average baseline
         if cttype == "moving" or cttype == "emoving":
-            decay *= 1.00002
+            #decay *= 1.00002
             if decay > 1:
                 decay = 1
             rewards = accuracy
