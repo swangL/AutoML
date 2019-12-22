@@ -53,7 +53,7 @@ class Controller(nn.Module):
         self.type = type
         self.probs_layer_1 = []
         self.reward = 0
-        self.gamma = 1
+        self.beta = 1
         super(Controller, self).__init__()
         # Create tokens which maps the amount of options for each layer
         # Recurrent layer
@@ -121,10 +121,8 @@ class Controller(nn.Module):
         R = torch.ones(1)*(accuracy+self.reward)
         adv = R - baseline
         if self.ent:
-            entropy = torch.tensor(self.entropies)*self.gamma
-            # this step is done to make sure that each entropy is pared with each actions probability (action_0 + entropy_0).
-            prob_ent = torch.add(log_prob,get_variable(entropy))
-            loss = -(torch.mean(torch.mul(prob_ent, get_variable(adv))))
+            entropy = torch.tensor(self.entropies)*self.beta
+            loss = -(torch.mean(torch.sub(torch.mul(log_prob, get_variable(adv)),get_variable(entropy))))
             return loss
         return -torch.mean(torch.mul(log_prob, get_variable(adv)))
 
@@ -132,8 +130,8 @@ class Controller(nn.Module):
     def sample(self):
         self.reward = 0
         self.entropies = []
-        if self.gamma > 0.1:
-            self.gamma*=0.99
+        if self.beta > 0.1:
+            self.beta*=0.999
         # tuple of h and c
         hidden = get_variable(torch.zeros(1,hidden_dim), requires_grad=False)
         input = get_variable(torch.zeros(1,hidden_dim), requires_grad=False)
