@@ -120,12 +120,12 @@ class Controller(nn.Module):
     def loss(self, log_prob, accuracy , baseline):
         R = torch.ones(1)*(accuracy+self.reward)
         adv = R - baseline
-        entropy = torch.tensor(self.entropies)*self.gamma
         if self.ent:
-            loss = -(torch.mean(torch.mul(log_prob, get_variable(adv))))
-            loss += -(torch.mean(get_variable(entropy))) 
+            entropy = torch.tensor(self.entropies)*self.gamma
+            # this step is done to make sure that each entropy is pared with each actions probability (action_0 + entropy_0).
+            prob_ent = torch.add(log_prob,get_variable(entropy))
+            loss = -(torch.mean(torch.mul(prob_ent, get_variable(adv))))
             return loss
-            torch.mean(get_variable(get_variable(entropy)))
         return -torch.mean(torch.mul(log_prob, get_variable(adv)))
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
