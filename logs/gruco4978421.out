@@ -1,0 +1,117 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+1000/10000
+Arch [32, 'ReLU', 4, 'Tanh', 8, 'Tanh', 64, 'Tanh']
+acc tensor(0.9497)
+loss tensor(0.4740, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9312)
+
+2000/10000
+Arch [32, 'ReLU', 64, 'Tanh', 64, 'Tanh', 8, 'ReLU']
+acc tensor(0.9497)
+loss tensor(0.1790, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9209)
+
+3000/10000
+Arch [16, 'ReLU', 64, 'Tanh', 2, 'Tanh', 64, 'Tanh', 64, 'Tanh']
+acc tensor(0.9447)
+loss tensor(0.1206, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9279)
+
+4000/10000
+Arch [32, 'ReLU', 4, 'Tanh', 32, 'ReLU', 16, 'Sigmoid', 32, 'ReLU', 64, 'Tanh', 8, 'Tanh', 64, 'Tanh', 8, 'ReLU', 32, 'Sigmoid', 64, 'Tanh', 16, 'ReLU']
+acc tensor(0.5025)
+loss tensor(-0.3778, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.8522)
+
+5000/10000
+Arch [32, 'ReLU']
+acc tensor(0.9548)
+loss tensor(0.1339, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9243)
+
+6000/10000
+Arch [32, 'ReLU']
+acc tensor(0.9497)
+loss tensor(0.1375, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9121)
+
+7000/10000
+Arch [64, 'ReLU', 4, 'Tanh']
+acc tensor(0.9497)
+loss tensor(0.1340, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9322)
+
+8000/10000
+Arch [64, 'ReLU', 64, 'Tanh']
+acc tensor(0.9497)
+loss tensor(0.1161, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9425)
+
+9000/10000
+Arch [32, 'ReLU', 32, 'Tanh', 32, 'Tanh']
+acc tensor(0.9497)
+loss tensor(0.1144, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9445)
+
+10000/10000
+Arch [16, 'ReLU', 2, 'Tanh', 2, 'Tanh']
+acc tensor(0.9447)
+loss tensor(0.1154, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9381)
+
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-4>
+Subject: Job 4978421: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Sun Dec 22 23:27:58 2019
+Job was executed on host(s) <n-62-20-4>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Sun Dec 22 23:28:00 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Sun Dec 22 23:28:00 2019
+Terminated at Mon Dec 23 01:22:39 2019
+Results reported at Mon Dec 23 01:22:39 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/gruco%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01 emoving
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   6862.37 sec.
+    Max Memory :                                 1861 MB
+    Average Memory :                             1846.40 MB
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               4283.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   6896 sec.
+    Turnaround time :                            6881 sec.
+
+The output (if any) is above this job summary.
+
