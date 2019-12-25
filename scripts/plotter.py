@@ -28,8 +28,6 @@ if __name__ == '__main__':
             moving_ave = (cumsum[i] - cumsum[i-N])/N
             #can do stuff with moving_ave here
             moving_aves_std.append(moving_ave)
-
-            
     moving_aves = np.array(moving_aves)
     moving_aves_std = np.array(moving_aves_std)
     #accs = np.convolve(accs, np.ones((5,))/5, mode='valid')
@@ -40,6 +38,7 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(range(len(moving_aves_std)),moving_aves_std,alpha=0.3)
     plt.plot(range(len(moving_aves)), moving_aves,alpha=1,color='orange')
+    plt.title("The accuracy for the selected architectures")
     plt.xlabel('Rollout')
     plt.ylabel('Accuracy')
 
@@ -67,6 +66,7 @@ if __name__ == '__main__':
     plt.figure()
     plt.stackplot(range(1,len(data[0])+1), *data)
     plt.legend([sizes_dict[i] for i in range(len(sizes_dict))])
-    plt.xlabel('Episode')
+    plt.title("The probability of taking the given actions at state 0")
+    plt.xlabel('Rollout')
     plt.ylabel('Chance')
     plt.show()
