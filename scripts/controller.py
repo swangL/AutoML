@@ -54,6 +54,7 @@ class Controller(nn.Module):
         self.probs_layer_1 = []
         self.reward = 0
         self.beta = 1
+        self.softmax_temperature = 1
         super(Controller, self).__init__()
         # Create tokens which maps the amount of options for each layer
         # Recurrent layer
@@ -104,6 +105,7 @@ class Controller(nn.Module):
             choice = block_id%2
         h = self.rnncell(inputs, hidden)
         logits = self.decoders[choice](h)
+        logits /= self.softmax_temperature
         return logits.squeeze(), h
 
         # print("self.decoders[choice]: ", self.decoders)

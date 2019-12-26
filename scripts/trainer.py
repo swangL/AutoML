@@ -3,9 +3,10 @@ import numpy as np
 from controller import Controller as ct
 import matplotlib.pyplot as plt
 from Environment import *
+from particletracking import *
 
 
-num_rollouts = 10
+clip_norm = 0
 
 #run a lot
 #make "batch run" and take the average reward.
@@ -48,7 +49,10 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     elif data_set == "MNIST":
         train_m.mnist_data(num_classes=10)
     elif data_set == "CONV":
-        train_m.conv_data(batch_size_train=64, batch_size_val=32)
+        train_m.conv_data(data_set_name="MNIST", batch_size_train=64, batch_size_val=32)
+    elif data_set == "PARTICLE":
+        train_m = Train_model_particle(params)
+        train_m.particle_data()
 
     for e in range(epochs):
 
@@ -73,12 +77,18 @@ def trainer(epochs,data_set,lr, cttype="ct"):
                 net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "CONV":
-            network = Net_CONV(string=arch, in_channels=1, num_classes=10, layers=layers)
+            network = Net_CONV(string=arch, img_size = 28, in_channels=1, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
                 net.cuda()
             accuracy = train_m.train_conv(net=net, plot=plot)
+        elif data_set == "PARTICLE":
+            network = Net_PARTICLE(string=arch, in_features=2025, num_classes=3, layers=layers)
+            net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                net.cuda()
+            accuracy = train_m.particle_train(net, plot)
 
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         accuracy = torch.tensor(accuracy)
@@ -103,9 +113,6 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
         # moving average baseline
         if cttype == "moving" or cttype == "emoving":
-            #decay *= 1.00002
-            if decay > 1:
-                decay = 1
             rewards = accuracy
             baseline = decay * baseline + (1 - decay) * rewards
         # dynamic baseline
@@ -122,6 +129,8 @@ def trainer(epochs,data_set,lr, cttype="ct"):
             print()
         loss_hist.append(float(loss.data))
         loss.backward()
+        if clip_norm > 0:
+            nn.utils.clip_grad_norm_(cont.parameters(), clip_norm)
         cont.optimizer.step()
 
     return accuracy_hist, loss_hist, cont.probs_layer_1, depth, sample_networks
