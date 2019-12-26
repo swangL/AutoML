@@ -53,6 +53,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     elif data_set == "PARTICLE":
         train_m = Train_model_particle(params)
         train_m.particle_data()
+        particle_losses=[]
 
     for e in range(epochs):
 
@@ -88,7 +89,8 @@ def trainer(epochs,data_set,lr, cttype="ct"):
             net = nn.Sequential(*layers)
             if torch.cuda.is_available():
                 net.cuda()
-            accuracy = train_m.particle_train(net, plot)
+            accuracy, particle_loss = train_m.particle_train(net, plot)
+            particle_losses.append(particle_loss)
 
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         accuracy = torch.tensor(accuracy)
@@ -133,6 +135,8 @@ def trainer(epochs,data_set,lr, cttype="ct"):
             nn.utils.clip_grad_norm_(cont.parameters(), clip_norm)
         cont.optimizer.step()
 
+    if data_set == "PARTICLE":
+        print(particle_losses)
     return accuracy_hist, loss_hist, cont.probs_layer_1, depth, sample_networks
 
 

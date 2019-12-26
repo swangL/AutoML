@@ -26,7 +26,7 @@ def normalize_Val_Data(x):
             x[i] = x[i]/len(x)
     return x
 
-def normalize(x): 
+def normalize(x):
     return x/255
 
 def mse_loss(ys, ts):
@@ -120,15 +120,15 @@ class Train_model_particle():
         # Create empty list to save x,y,z-coordinates as matrix
         train_target=[]
         #Read files in txtfolder
-        dirCoordinates=os.listdir(txtfolder) 
-        dirCoordinates=os.listdir(txtfolder)[0:len(dirCoordinates)] 
-        dirCoordinates=sort_nice(dirCoordinates) #sort so 10 is after 9 
+        dirCoordinates=os.listdir(txtfolder)
+        dirCoordinates=os.listdir(txtfolder)[0:len(dirCoordinates)]
+        dirCoordinates=sort_nice(dirCoordinates) #sort so 10 is after 9
 
         # Create a list of extracted x,y,z-values
         for i in range (0, len(dirCoordinates)):
-            train_target.append([settingLoad(txtfolder, dirCoordinates[i])[0],settingLoad(txtfolder, dirCoordinates[i])[1],abs(settingLoad(txtfolder, dirCoordinates[i])[2])]) 
+            train_target.append([settingLoad(txtfolder, dirCoordinates[i])[0],settingLoad(txtfolder, dirCoordinates[i])[1],abs(settingLoad(txtfolder, dirCoordinates[i])[2])])
 
-        train_target=torch.tensor(train_target) 
+        train_target=torch.tensor(train_target)
         numImages = len(train_target) #Total number of loaded images
         train_data=create_training_data(imagefolder)
         train_data = torch.flatten(train_data, start_dim=1)
@@ -142,9 +142,9 @@ class Train_model_particle():
         val_txtfolder = "xyzPredictionTXTFloat"
 
         #Read files in txtfolder
-        dirCoordinates=os.listdir(val_txtfolder) 
-        dirCoordinates=os.listdir(val_txtfolder)[0:len(dirCoordinates)] 
-        dirCoordinates=sort_nice(dirCoordinates) #sort so 10 is after 9 
+        dirCoordinates=os.listdir(val_txtfolder)
+        dirCoordinates=os.listdir(val_txtfolder)[0:len(dirCoordinates)]
+        dirCoordinates=sort_nice(dirCoordinates) #sort so 10 is after 9
         # Create a list of extracted x,y,z-values
         for i in range (0, len(dirCoordinates)):
             val_target.append([settingLoad(val_txtfolder, dirCoordinates[i])[0],settingLoad(val_txtfolder, dirCoordinates[i])[1],abs(settingLoad(val_txtfolder, dirCoordinates[i])[2])])
@@ -167,7 +167,7 @@ class Train_model_particle():
 
         self.X_train = train_data
         self.X_val = val_data
-        
+
         self.y_train = train_target
         self.y_val = val_target
 
@@ -231,19 +231,19 @@ class Train_model_particle():
         es_limit = 30
 
         for e in range(self.params["num_epochs"]):
-            
+
             batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses, batch_r2_scores, batch_val_r2_scores = [], [], [], [], [], []
 
             # --------------- train the model --------------- #
             for batch in range(train_loader):
-                
+
                 optimizer.zero_grad()
 
                 if batch == (train_loader - 1):
                     slce = slice(batch * train_batch_size, -1)
                 else:
                     slce = slice(batch * train_batch_size, (batch + 1) * train_batch_size)
-                
+
                 preds = net(self.X_train[slce])
                 loss = mse_loss(preds, self.y_train[slce])
                 loss.backward()
@@ -254,7 +254,7 @@ class Train_model_particle():
                 batch_accuracies.append(acc)
                 batch_r2_scores.append(r2_score)
                 batch_losses.append(loss.cpu().data.numpy())
-                
+
             # --------------- validate the model --------------- #
             for batch in range(val_loader):
 
@@ -277,13 +277,13 @@ class Train_model_particle():
             val_accuracies.append(np.mean(batch_val_accuracies))
             losses.append(np.mean(batch_losses))
             val_losses.append(np.mean(batch_val_losses))
-            
+
             r2_scores.append(np.mean(batch_r2_scores))
 
             for i in range(len(batch_val_r2_scores)):
                 if batch_val_r2_scores[i] < 0:
                     batch_val_r2_scores[i] = 0
-            
+
 
             # batch_val_r2_scores = normalizeValData(batch_val_r2_scores)
 
@@ -292,9 +292,9 @@ class Train_model_particle():
             # EarlyStopping
             if early_stop:
                 if e == 0:
-                    es_old_val = float(val_acc)
+                    es_old_val = float(val_r2_score)
                 else:
-                    es_new_val = float(val_acc)
+                    es_new_val = float(val_r2_score)
 
                     if abs(es_old_val - es_new_val) <= es_range:
                         counter += 1
@@ -302,8 +302,8 @@ class Train_model_particle():
                             break
                     else:
                         counter = 0
-                        es_old_val = float(val_acc)
-        
+                        es_old_val = float(val_r2_score)
+
         if plot:
             self.plotter(r2_scores, losses, val_r2_scores, val_losses)
 
@@ -332,5 +332,3 @@ if test:
     train_m.particle_data()
     r2_score = train_m.particle_train(net, plot)
     print(r2_score)
-
-

@@ -439,7 +439,7 @@ class Train_model():
                         counter = 0
                         es_old_val = float(val_accuracies[-1])
 
-            print("Childnet Episode: ", e+1, "Train_Acc: ", accuracies[-1], "Val_Acc: ", val_accuracies[-1])
+            #print("Childnet Episode: ", e+1, "Train_Acc: ", accuracies[-1], "Val_Acc: ", val_accuracies[-1])
         return val_accuracies[-1]
 
 test = False
