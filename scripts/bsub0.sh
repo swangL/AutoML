@@ -4,8 +4,8 @@
 #BSUB -J myJob
 #BSUB -n 1
 #BSUB -W 10:00
-#BSUB -R "rusage[mem=6GB]"
-#BSUB -o ../logs/co%J.out
+#BSUB -R "rusage[mem=12GB]"
+#BSUB -o ../logs/conv%J.out
 
 module load python3/3.6.2
 module load cuda/8.0

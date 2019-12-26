@@ -152,9 +152,8 @@ class Net_CONV(nn.Module):
                     image = (self.conv_out_height, self.conv_out_width)
                 counter += 1
 
-        if string == []:
-            self.conv_out_height = image[0]
-            self.conv_out_width = image[1]
+        self.conv_out_height = image[0]
+        self.conv_out_width = image[1]
 
         if self.conv_out_height == 0:
             print('conv_out_height is zero')
