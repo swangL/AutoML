@@ -5,7 +5,7 @@
 #BSUB -n 1
 #BSUB -W 10:00
 #BSUB -R "rusage[mem=6GB]"
-#BSUB -o ../logs/gruco%J.out
+#BSUB -o ../logs/part%J.out
 
 module load python3/3.6.2
 module load cuda/8.0

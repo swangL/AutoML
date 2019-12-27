@@ -306,8 +306,7 @@ class Train_model_particle():
 
         if plot:
             self.plotter(r2_scores, losses, val_r2_scores, val_losses)
-
-        return val_r2_scores[-1]
+        return val_r2_scores[-1], val_losses[-1]
 
 test = False
 
