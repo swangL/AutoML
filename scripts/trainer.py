@@ -55,6 +55,11 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         train_m = Train_model_particle(params)
         train_m.particle_data()
         particle_losses=[]
+    elif data_set == "PARTICLECONV":
+        cont.conv = True
+        train_m = Train_model_particle(params)
+        train_m.particle_data_conv()
+        particle_losses=[]
 
     for e in range(epochs):
 
@@ -88,6 +93,13 @@ def trainer(epochs,data_set,lr, cttype="ct"):
             accuracy = train_m.train_conv(net=net, plot=plot)
         elif data_set == "PARTICLE":
             network = Net_PARTICLE(string=arch, in_features=2025, num_classes=3, layers=layers)
+            net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                net.cuda()
+            accuracy, particle_loss = train_m.particle_train(net, plot)
+            particle_losses.append(particle_loss)
+        elif data_set == "PARTICLECONV":
+            network = Partivle_Net_CONV(string=arch, img_size = 45, num_classes=3, layers=layers,  in_channels=1)
             net = nn.Sequential(*layers)
             if torch.cuda.is_available():
                 net.cuda()
@@ -137,7 +149,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
             nn.utils.clip_grad_norm_(cont.parameters(), clip_norm)
         cont.optimizer.step()
 
-    if data_set == "PARTICLE":
+    if data_set == "PARTICLE" or data_set == "PARTICLECONV":
         print(particle_losses)
     return accuracy_hist, loss_hist, cont.probs_layer_1, depth, sample_networks
 

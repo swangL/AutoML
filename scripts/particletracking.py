@@ -46,7 +46,7 @@ def create_training_data(imagefolder):
         try:
             img_array = cv2.imread(os.path.join(imagefolder,pics[img]),cv2.IMREAD_GRAYSCALE) #adding pic name to folder directory
             new_array = cv2.resize(img_array, (IMG_WIDTH, IMG_HEIGHT))
-            training_data.append(new_array)
+            training_data.append(new_array.reshape((1, IMG_WIDTH,IMG_HEIGHT)))
         except Exception as e: #pass destroyed files
             pass
     return torch.tensor(training_data)
@@ -71,6 +71,10 @@ def r2_score(ys, ts):
     SS_tot = torch.sum(math.pow((ts - math.mean(ts),2)))
     return (1 - (SS_res/(SS_tot + torch.epsilon())))
 
+class Flatten(nn.Module):
+    def forward(self, input):
+        batch_size = len(input)
+        return input.view(batch_size, -1)
 # Network
 class Net_PARTICLE(nn.Module):
 
@@ -102,6 +106,54 @@ class Net_PARTICLE(nn.Module):
         # Last layer with output 2 representing the two classes
         layers.append(nn.Linear(num_input, num_classes))
 
+class Partivle_Net_CONV(nn.Module):
+
+    # Constructor to build network
+    def __init__(self, string, img_size, in_channels, num_classes, layers):
+
+        image = (img_size, img_size)
+        padding = 1
+        stride = 1
+
+        # Inherit from parent constructor
+        super(Partivle_Net_CONV, self).__init__()
+
+        channels = in_channels
+        counter = 0
+
+        # Break down string sent from Controller
+        # and add layers in network based on this
+        for s in string:
+
+            # If element in string is not a number (i.e. an activation function)
+            if s is 'ReLU':
+                layers.append(nn.ReLU())
+            elif s is 'Tanh':
+                layers.append(nn.Tanh())
+            elif s is 'Sigmoid':
+                layers.append(nn.Sigmoid())
+            else:
+                if counter % 2 == 0:
+                    s_int = int(s)
+                else:
+                    kernel_size = int(s)
+                    padding = kernel_size - 1
+                    layers.append(nn.Conv2d(in_channels=channels, out_channels=s_int, kernel_size=kernel_size, stride=stride, padding=padding))
+                    channels = s_int
+                    #image = (self.conv_out_height, self.conv_out_width)
+                counter += 1
+
+        self.conv_out_height = image[0]
+        self.conv_out_width = image[1]
+
+        if self.conv_out_height == 0:
+            print('conv_out_height is zero')
+
+        self.in_features = channels * self.conv_out_height * self.conv_out_width
+
+        layers.append(Flatten())
+        # Last layer with output 2 representing the two classes
+        layers.append(nn.Linear(self.in_features, num_classes))
 
 class Train_model_particle():
 
@@ -137,6 +189,58 @@ class Train_model_particle():
         val_data = create_training_data(validationfolder)
         val_data = torch.flatten(val_data, start_dim=1)
 
+        # Create empty list to save x,y,z-coordinates as matrix
+        val_target=[]
+        val_txtfolder = "xyzPredictionTXTFloat"
+
+        #Read files in txtfolder
+        dirCoordinates=os.listdir(val_txtfolder)
+        dirCoordinates=os.listdir(val_txtfolder)[0:len(dirCoordinates)]
+        dirCoordinates=sort_nice(dirCoordinates) #sort so 10 is after 9
+        # Create a list of extracted x,y,z-values
+        for i in range (0, len(dirCoordinates)):
+            val_target.append([settingLoad(val_txtfolder, dirCoordinates[i])[0],settingLoad(val_txtfolder, dirCoordinates[i])[1],abs(settingLoad(val_txtfolder, dirCoordinates[i])[2])])
+
+        # Load into CUDA
+        val_data = get_variable(val_data).float()
+        val_target = get_variable(torch.tensor(val_target)).float()
+        train_data = get_variable(train_data).float()
+        train_target = get_variable(train_target).float()
+
+        transform = transforms.Compose([transforms.ToTensor,
+                                        transforms.Normalize([0.5], [0.5])])
+
+        val_data = normalize(val_data)
+        val_target = normalize(val_target)
+        train_target = normalize(train_target)
+        train_data = normalize(train_data)
+
+        train_data, train_target, val_data, val_target
+
+        self.X_train = train_data
+        self.X_val = val_data
+
+        self.y_train = train_target
+        self.y_val = val_target
+
+    def particle_data_conv(self):
+        # Create empty list to save x,y,z-coordinates as matrix
+        train_target=[]
+        #Read files in txtfolder
+        dirCoordinates=os.listdir(txtfolder)
+        dirCoordinates=os.listdir(txtfolder)[0:len(dirCoordinates)]
+        dirCoordinates=sort_nice(dirCoordinates) #sort so 10 is after 9
+
+        # Create a list of extracted x,y,z-values
+        for i in range (0, len(dirCoordinates)):
+            train_target.append([settingLoad(txtfolder, dirCoordinates[i])[0],settingLoad(txtfolder, dirCoordinates[i])[1],abs(settingLoad(txtfolder, dirCoordinates[i])[2])])
+
+        train_target=torch.tensor(train_target)
+        numImages = len(train_target) #Total number of loaded images
+        train_data=create_training_data(imagefolder)
+
+        validationfolder = "xyzPredictionImagesFloat"
+        val_data = create_training_data(validationfolder)
         # Create empty list to save x,y,z-coordinates as matrix
         val_target=[]
         val_txtfolder = "xyzPredictionTXTFloat"

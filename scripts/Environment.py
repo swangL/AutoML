@@ -247,15 +247,15 @@ class Train_model():
             val_set = datasets.MNIST(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             train_split_len = 1000
             val_split_len = 150
-            train_set = get_variable(torch.utils.data.random_split(train_set, [train_split_len, len(train_set)-train_split_len])[0])
-            val_set = get_variable(torch.utils.data.random_split(val_set, [val_split_len, len(val_set)-val_split_len])[0])
+            train_set = torch.utils.data.random_split(train_set, [train_split_len, len(train_set)-train_split_len])[0]
+            val_set = torch.utils.data.random_split(val_set, [val_split_len, len(val_set)-val_split_len])[0]
 
         elif data_set_name == 'CIFAR':
             train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
 
-        self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=False)
-        self.val_loader = torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False)
+        self.train_loader = get_variable(torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=False))
+        self.val_loader = get_variable(torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False))
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 
