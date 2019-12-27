@@ -49,6 +49,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     elif data_set == "MNIST":
         train_m.mnist_data(num_classes=10)
     elif data_set == "CONV":
+        cont.conv=True
         train_m.conv_data(data_set_name="MNIST", batch_size_train=64, batch_size_val=32)
     elif data_set == "PARTICLE":
         train_m = Train_model_particle(params)
@@ -58,6 +59,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     for e in range(epochs):
 
         arch,probs = cont.sample()
+        print(arch)
         #Notice here we also get the probability of the termination!
 
 

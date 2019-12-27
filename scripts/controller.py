@@ -47,9 +47,9 @@ hidden_dim = 50
 dictionaries = [activations_dict,sizes_dict]
 
 class Controller(nn.Module):
-    def __init__(self,lr,Conv=False, type='van', ent=False):
+    def __init__(self,lr,conv=False, type='van', ent=False):
         self.ent = ent
-        self.Conv = Conv
+        self.conv = conv
         self.type = type
         self.probs_layer_1 = []
         self.reward = 0
@@ -66,7 +66,7 @@ class Controller(nn.Module):
 
         #Linear layer for each of the block - decoder
         self.decoders=[]
-        if Conv:
+        if conv:
             self.num_tokens = [len(activations_dict)]
             for i in range(num_blocks):
                 # TODO (Mads): implement variable amount of choices / help guide
@@ -97,7 +97,7 @@ class Controller(nn.Module):
 
     # You can see the forward pass as an action taken by the agent
     def forward(self, inputs, hidden, block_id):
-        if self.Conv:
+        if self.conv:
             choice = block_id%3
         elif self.type == "divnot":
             choice = block_id
@@ -163,7 +163,7 @@ class Controller(nn.Module):
             #append to return list which is used as the probs
             logProb_list.append(log_prob.gather(0,action))
             # determine whether activation or hidden
-            if self.Conv:
+            if self.conv:
                 choice = block_id - indx
                 if choice%3==0:
                     arch.append(activations_dict[int(action)])
