@@ -140,17 +140,15 @@ class Net_CONV(nn.Module):
             elif s is 'Sigmoid':
                 layers.append(nn.Sigmoid())
             else:
-                if counter % 2 == 0:
+                if counter % 3 == 0:
                     s_int = int(s)
                 else:
                     kernel_size = int(s)
-                    padding = kernel_size - 1
+                    padding = (kernel_size - 1)//2
                     layers.append(nn.Conv2d(in_channels=channels, out_channels=s_int, kernel_size=kernel_size, stride=stride, padding=padding))
                     channels = s_int
-                    self.conv_out_height = compute_conv_dim(image[0], kernel_size, padding)
-                    self.conv_out_width = compute_conv_dim(image[1], kernel_size, padding)
-                    image = (self.conv_out_height, self.conv_out_width)
-                counter += 1
+                    #image = (self.conv_out_height, self.conv_out_width)
+            counter += 1
 
         self.conv_out_height = image[0]
         self.conv_out_width = image[1]
