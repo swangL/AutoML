@@ -254,8 +254,8 @@ class Train_model():
             train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transforms.Compose([transforms.ToTensor()]))
             val_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transforms.Compose([transforms.ToTensor()]))
 
-        self.train_loader = get_variable(torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=False))
-        self.val_loader = get_variable(torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False))
+        self.train_loader = (torch.utils.data.DataLoader(train_set, batch_size=batch_size_train, shuffle=False))
+        self.val_loader = (torch.utils.data.DataLoader(val_set, batch_size=len(val_set), shuffle=False))
 
     def plotter(self, accuracies, losses, val_accuracies, val_losses):
 

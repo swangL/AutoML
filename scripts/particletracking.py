@@ -271,7 +271,7 @@ class Train_model_particle():
 
         self.X_train = train_data
         self.X_val = val_data
-
+        print(train_data.shape)
         self.y_train = train_target
         self.y_val = val_target
 
