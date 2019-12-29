@@ -1,0 +1,117 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+1000/10000
+Arch [32, 'Tanh', 8, 'Tanh', 16, 'Tanh', 16, 'Tanh', 32, 'Tanh', 2, 'Tanh']
+acc tensor(0.9849)
+loss tensor(0.0003, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9847)
+
+2000/10000
+Arch [8, 'ReLU', 8, 'Tanh', 8, 'ReLU', 16, 'Tanh', 64, 'Tanh', 32, 'Sigmoid', 64, 'Tanh', 64, 'ReLU', 64, 'Tanh', 64, 'Tanh', 2, 'Tanh', 8, 'ReLU']
+acc tensor(0.9397)
+loss tensor(-0.0004, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9400)
+
+3000/10000
+Arch [16, 'ReLU', 8, 'Tanh', 32, 'Tanh', 64, 'Tanh', 16, 'Tanh']
+acc tensor(0.9799)
+loss tensor(0.0002, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9797)
+
+4000/10000
+Arch [32, 'Tanh', 8, 'Tanh', 16, 'Tanh', 8, 'Tanh', 16, 'Tanh', 64, 'ReLU', 64, 'Tanh', 8, 'Tanh', 4, 'ReLU', 16, 'Tanh', 2, 'Tanh', 16, 'Tanh']
+acc tensor(0.9749)
+loss tensor(-9.9201e-06, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9749)
+
+5000/10000
+Arch [4, 'Tanh', 64, 'Sigmoid', 16, 'Sigmoid', 64, 'Sigmoid', 32, 'ReLU', 16, 'Tanh', 16, 'ReLU', 64, 'Tanh', 4, 'Tanh', 8, 'ReLU']
+acc tensor(0.4874)
+loss tensor(-0.0003, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.4876)
+
+6000/10000
+Arch [2, 'Tanh', 16, 'Tanh', 64, 'Tanh', 4, 'Tanh', 8, 'Tanh', 64, 'Tanh']
+acc tensor(0.8693)
+loss tensor(-1.6985e-05, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.8694)
+
+7000/10000
+Arch [16, 'ReLU', 32, 'Tanh', 16, 'Tanh', 8, 'Tanh']
+acc tensor(0.9899)
+loss tensor(5.0579e-07, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9899)
+
+8000/10000
+Arch [64, 'Tanh', 64, 'Tanh', 8, 'ReLU', 8, 'ReLU', 8, 'Tanh', 4, 'ReLU', 16, 'ReLU', 32, 'Tanh', 64, 'Tanh', 8, 'Tanh', 64, 'Tanh', 8, 'Tanh']
+acc tensor(0.9899)
+loss tensor(-0., device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9899)
+
+9000/10000
+Arch [8, 'ReLU', 16, 'Tanh', 8, 'Tanh', 32, 'Tanh', 8, 'Tanh', 2, 'Tanh', 64, 'Tanh']
+acc tensor(0.9799)
+loss tensor(8.2051e-07, device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9799)
+
+10000/10000
+Arch [64, 'ReLU']
+acc tensor(0.9799)
+loss tensor(-0., device='cuda:0', grad_fn=<NegBackward>)
+baseline tensor(0.9799)
+
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-6>
+Subject: Job 4969706: <myJob> in cluster <dcc> Done
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Fri Dec 20 11:18:36 2019
+Job was executed on host(s) <n-62-20-6>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Fri Dec 20 11:18:37 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Fri Dec 20 11:18:37 2019
+Terminated at Fri Dec 20 15:14:15 2019
+Results reported at Fri Dec 20 15:14:15 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/gruco%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 MOONS 0.01 moving
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   14095.04 sec.
+    Max Memory :                                 1859 MB
+    Average Memory :                             1848.35 MB
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               4285.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   14148 sec.
+    Turnaround time :                            14139 sec.
+
+The output (if any) is above this job summary.
+

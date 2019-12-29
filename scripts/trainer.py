@@ -1,12 +1,12 @@
 import torch
 import numpy as np
 from controller import Controller as ct
-from controller import CollectedController
 import matplotlib.pyplot as plt
 from Environment import *
+from particletracking import *
 
 
-num_rollouts = 10
+clip_norm = 0
 
 #run a lot
 #make "batch run" and take the average reward.
@@ -15,38 +15,11 @@ num_rollouts = 10
 def trainer(epochs,data_set,lr, cttype="ct"):
 
     # Change HERE if conv = True
-    if cttype == "ct":
-        cont = ct(lr)
-    elif cttype == "cct":
-        cont = CollectedController(lr)
-    elif cttype == "conv":
-        cont = ct(lr, True)
-    elif cttype == "gcct":
-        cont = CollectedController(lr, GRU=True)
-    elif cttype == "gct": #####################
-        cont = ct(lr, GRU=True)
-    elif cttype == "egcct":
-        cont = CollectedController(lr, GRU=True, ent=True)
-    elif cttype == "antitgcct":
-        cont = CollectedController(lr, GRU=True, type="anti")
-    elif cttype == "ecct":
-        cont = CollectedController(lr, ent=True)
-    elif cttype == "antitcct":
-        cont = CollectedController(lr, type="anti")
-    elif cttype == "egct":
-        cont = ct(lr, GRU=True, ent=True)
-    elif cttype == "antitgct":
-        cont = ct(lr, GRU=True, type="anti")
-    elif cttype == "notgct":
-        cont = ct(lr, GRU=True, type="not")
-    elif cttype == "ect":
+    if cttype == "econst" or cttype == "emoving" or cttype == "edynamic":
         cont = ct(lr, ent=True)
-    elif cttype == "antitct":
-        cont = ct(lr, type="anti")
-    elif cttype == "notct":
-        cont = ct(lr, type="not")
-    elif cttype == "divnotct":
-        cont = ct(lr, type="divnot")
+    else:
+        cont = ct(lr)
+
     if torch.cuda.is_available():
         print('##converting Controller to cuda-enabled')
         cont.cuda()
@@ -67,7 +40,8 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         "opt": "SGD",
         "lr": 0.01
     }
-
+    decay = 0.95
+    baseline = 0.85
     train_m = Train_model(params)
 
     if data_set == "MOONS":
@@ -75,11 +49,22 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     elif data_set == "MNIST":
         train_m.mnist_data(num_classes=10)
     elif data_set == "CONV":
-        train_m.conv_data(data_set_name='MNIST',batch_size_train=64, batch_size_val=32)
+        cont.conv=True
+        train_m.conv_data(data_set_name="MNIST", batch_size_train=64, batch_size_val=32)
+    elif data_set == "PARTICLE":
+        train_m = Train_model_particle(params)
+        train_m.particle_data()
+        particle_losses=[]
+    elif data_set == "PARTICLECONV":
+        cont.conv = True
+        train_m = Train_model_particle(params)
+        train_m.particle_data_conv()
+        particle_losses=[]
 
     for e in range(epochs):
 
         arch,probs = cont.sample()
+        print(arch)
         #Notice here we also get the probability of the termination!
 
 
@@ -103,13 +88,28 @@ def trainer(epochs,data_set,lr, cttype="ct"):
                 net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "CONV":
-            network = Net_CONV(string=arch, img_size=28, in_channels=1, num_classes=10, layers=layers)
+            network = Net_CONV(string=arch, img_size = 28, in_channels=1, num_classes=10, layers=layers)
+
             net = nn.Sequential(*layers)
             print(net)
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
                 net.cuda()
             accuracy = train_m.train_conv(net=net, plot=plot)
+        elif data_set == "PARTICLE":
+            network = Net_PARTICLE(string=arch, in_features=2025, num_classes=3, layers=layers)
+            net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                net.cuda()
+            accuracy, particle_loss = train_m.particle_train(net, plot)
+            particle_losses.append(particle_loss)
+        elif data_set == "PARTICLECONV":
+            network = Partivle_Net_CONV(string=arch, img_size = 45, num_classes=3, layers=layers,  in_channels=1)
+            net = nn.Sequential(*layers)
+            if torch.cuda.is_available():
+                net.cuda()
+            accuracy, particle_loss = train_m.particle_train(net, plot)
+            particle_losses.append(particle_loss)
 
 
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
@@ -132,19 +132,31 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
         #TODO verify that this is the REINFORCE behaviour that we want
         cont.optimizer.zero_grad()
-        baseline = torch.tensor(0)
+
+        # moving average baseline
+        if cttype == "moving" or cttype == "emoving":
+            rewards = accuracy
+            baseline = decay * baseline + (1 - decay) * rewards
+        # dynamic baseline
+        if cttype == "dynamic" or cttype == "edynamic":
+            if accuracy>baseline:
+                baseline*=1.01
         loss = cont.loss(probs,accuracy,baseline)
         if (e+1) % (epochs/10) == 0:
             print("{}/{}".format(e+1,epochs), flush=True)
             print("Arch", arch)
             print("acc",accuracy)
             print("loss",loss)
+            print("baseline", baseline)
             print()
-        #print(loss)
         loss_hist.append(float(loss.data))
         loss.backward()
+        if clip_norm > 0:
+            nn.utils.clip_grad_norm_(cont.parameters(), clip_norm)
         cont.optimizer.step()
 
+    if data_set == "PARTICLE" or data_set == "PARTICLECONV":
+        print(particle_losses)
     return accuracy_hist, loss_hist, cont.probs_layer_1, depth, sample_networks
 
 
