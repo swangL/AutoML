@@ -12,4 +12,4 @@ module load cuda/8.0
 module load cudnn/v7.0-prod-cuda8
 
 echo "Running script..."
-python3 train.py 5000 CONV 0.01 emoving
+python3 train.py 1000 CONV 0.01 emoving
