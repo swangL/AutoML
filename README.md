@@ -7,9 +7,9 @@ This github repository contains the implementation of NAS. This implementation i
 
 ## Running the scripts
 To run an iteration of NAS one can use the script train.py using the following format:
-´´´
+´´
 train.py {iterations} {dataset} {learning_rate} {control_arch}
-´´´
+´´
 
 |variable | meaning | options |
 |:--|:---|:---|
@@ -17,3 +17,7 @@ train.py {iterations} {dataset} {learning_rate} {control_arch}
 |Dataset| choose which dataset to train the child network in| HALFMOONS, MNIST (CONV for convolutional implementation), PARTICLE, PARTICLECONV|
 |Learning_rate| The learning_rate of the controller| any float, a good value is often 0.01|
 |Control_arch|The architecture of the controller, this specifies wether to use entropy and the baselines| static, dynamic, moving, with entropy estatic, edynamic, emoving
+
+# Jupyter notebook
+
+In the top level of the folder there is an interactive jupyter notebook example, which showcases how we implemented the controller and such. This is a scraped version which only focus on Half Moon as dataset, and with entropy and moving baseline implemented. 
