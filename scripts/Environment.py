@@ -146,13 +146,14 @@ class Net_CONV(nn.Module):
                     s_int = int(s)
                 else:
                     kernel_size = int(s)
+                    img_size = compute_conv_dim(img_size,kernel_size,1)
                     layers.append(nn.Conv2d(in_channels=channels, out_channels=s_int, kernel_size=kernel_size, stride=stride, padding=padding))
                     channels = s_int
                     #image = (self.conv_out_height, self.conv_out_width)
             counter += 1
 
-        self.conv_out_height = image[0]
-        self.conv_out_width = image[1]
+        self.conv_out_height = img_size
+        self.conv_out_width = img_size
 
         self.in_features = channels * self.conv_out_height * self.conv_out_width
 
