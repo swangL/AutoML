@@ -179,13 +179,15 @@ class Controller(nn.Module):
                     #new img_size
                     img_size=compute_conv_dim(img_size,kernel_size,1)
                     if img_size<=0:
-                        self.reward-=0.5
+                        self.reward-=0.1
                         break
                     else:
                         arch.append(kernel_size)
                 else:
                     value = channels_dict[int(action)]
                     if value=="term":
+                        if block_id==1:
+                            self.reward-=1
                         break
                     else:
                         arch.append(value)
