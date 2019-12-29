@@ -7,9 +7,9 @@ This github repository contains the implementation of NAS. This implementation i
 
 ## Running the scripts
 To run an iteration of NAS one can use the script train.py using the following format:
-´´
-train.py {iterations} {dataset} {learning_rate} {control_arch}
-´´
+
+  ### train.py {iterations} {dataset} {learning_rate} {control_arch}
+
 
 |variable | meaning | options |
 |:--|:---|:---|
