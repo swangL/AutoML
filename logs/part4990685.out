@@ -1,0 +1,86 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+torch.Size([1000, 1, 45, 45])
+[4, 7, 'ReLU', 32, 7, 'Tanh', 16, 5, 'ReLU', 16, 7, 'Tanh', 16, 5, 'ReLU', 16, 5, 'Tanh']
+[16, 3, 'Tanh', 8, 5, 'ReLU']
+[64, 5, 'Sigmoid']
+[8, 5, 'Sigmoid', 64, 5, 'Sigmoid', 16, 3, 'Sigmoid', 4, 3, 'Sigmoid']
+[16, 3, 'Sigmoid']
+[8, 5, 'ReLU']
+[]
+[]
+[32, 5, 'Tanh', 4, 3, 'Tanh', 2, 3, 'ReLU', 32, 3, 'ReLU', 64, 3, 'Tanh', 8, 5, 'ReLU', 64, 5, 'Tanh', 4, 3, 'Tanh']
+[8, 5, 'ReLU', 16, 3, 'Tanh', 16, 3, 'Tanh', 4, 3, 'Tanh', 16, 3, 'Sigmoid', 2, 7, 'Sigmoid', 4, 3, 'Tanh', 4, 3, 'Tanh']
+[4, 3, 'ReLU', 4, 5, 'ReLU', 32, 3, 'Sigmoid', 32, 5, 'Sigmoid', 4, 5, 'Tanh', 32, 5, 'ReLU', 2, 3, 'Tanh', 2, 7, 'Sigmoid']
+[16, 7, 'Sigmoid', 64, 5, 'Sigmoid', 4, 5, 'Tanh', 64, 3, 'ReLU']
+[4, 5, 'Tanh', 16, 3, 'ReLU', 8, 5, 'Tanh', 32, 7, 'Sigmoid', 32, 7, 'Sigmoid']
+[]
+[64, 3, 'Tanh']
+[8, 3, 'ReLU', 64, 7, 'ReLU', 4, 3, 'Tanh', 4, 3, 'Sigmoid', 32, 5, 'Sigmoid', 4, 5, 'Tanh', 32, 7, 'Sigmoid', 64, 5, 'Sigmoid']
+Traceback (most recent call last):
+  File "train.py", line 21, in <module>
+    accuracy_hist, loss_hist, probs_layer_1, depth, sample_networks = trainer(parameters["rollouts"],parameters["dataset"], parameters["lr"], parameters["controltype"])
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/trainer.py", line 106, in trainer
+    accuracy, particle_loss = train_m.particle_train(net, plot)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/particletracking.py", line 353, in particle_train
+    loss.backward()
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/tensor.py", line 166, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/autograd/__init__.py", line 99, in backward
+    allow_unreachable=True)  # allow_unreachable flag
+RuntimeError: CUDA out of memory. Tried to allocate 494.00 MiB (GPU 0; 15.78 GiB total capacity; 4.79 GiB already allocated; 157.19 MiB free; 1.16 GiB cached)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-7>
+Subject: Job 4990685: <myJob> in cluster <dcc> Exited
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Fri Dec 27 17:54:19 2019
+Job was executed on host(s) <n-62-20-7>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Fri Dec 27 17:54:20 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Fri Dec 27 17:54:20 2019
+Terminated at Fri Dec 27 18:04:38 2019
+Results reported at Fri Dec 27 18:04:38 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 20:00
+#BSUB -R "rusage[mem=20GB]"
+#BSUB -o ../logs/part%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 5000 PARTICLECONV 0.01 emoving
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   608.96 sec.
+    Max Memory :                                 1907 MB
+    Average Memory :                             1852.14 MB
+    Total Requested Memory :                     20480.00 MB
+    Delta Memory :                               18573.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   637 sec.
+    Turnaround time :                            619 sec.
+
+The output (if any) is above this job summary.
+

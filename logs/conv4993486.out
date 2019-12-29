@@ -1,0 +1,93 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+[4, 7, 'ReLU', 32, 7, 'Tanh', 16, 5, 'ReLU', 16, 7, 'Tanh', 16, 5, 'ReLU', 16, 5, 'Tanh']
+Sequential(
+  (0): Conv2d(1, 4, kernel_size=(7, 7), stride=(1, 1), padding=(1, 1))
+  (1): ReLU()
+  (2): Conv2d(4, 32, kernel_size=(7, 7), stride=(1, 1), padding=(1, 1))
+  (3): Tanh()
+  (4): Conv2d(32, 16, kernel_size=(5, 5), stride=(1, 1), padding=(1, 1))
+  (5): ReLU()
+  (6): Conv2d(16, 16, kernel_size=(7, 7), stride=(1, 1), padding=(1, 1))
+  (7): Tanh()
+  (8): Conv2d(16, 16, kernel_size=(5, 5), stride=(1, 1), padding=(1, 1))
+  (9): ReLU()
+  (10): Conv2d(16, 16, kernel_size=(5, 5), stride=(1, 1), padding=(1, 1))
+  (11): Tanh()
+  (12): Flatten()
+  (13): Linear(in_features=12544, out_features=10, bias=True)
+  (14): Softmax(dim=0)
+)
+Traceback (most recent call last):
+  File "train.py", line 21, in <module>
+    accuracy_hist, loss_hist, probs_layer_1, depth, sample_networks = trainer(parameters["rollouts"],parameters["dataset"], parameters["lr"], parameters["controltype"])
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/trainer.py", line 98, in trainer
+    accuracy = train_m.train_conv(net=net, plot=plot)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/Environment.py", line 409, in train_conv
+    preds = net(image_train)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/container.py", line 92, in forward
+    input = module(input)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 541, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/linear.py", line 87, in forward
+    return F.linear(input, self.weight, self.bias)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/functional.py", line 1370, in linear
+    ret = torch.addmm(bias, input, weight.t())
+RuntimeError: size mismatch, m1: [64 x 1600], m2: [12544 x 10] at /pytorch/aten/src/THC/generic/THCTensorMathBlas.cu:290
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-7>
+Subject: Job 4993486: <myJob> in cluster <dcc> Exited
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Sun Dec 29 17:28:50 2019
+Job was executed on host(s) <n-62-20-7>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Sun Dec 29 17:28:50 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Sun Dec 29 17:28:50 2019
+Terminated at Sun Dec 29 17:29:06 2019
+Results reported at Sun Dec 29 17:29:06 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 20:00
+#BSUB -R "rusage[mem=20GB]"
+#BSUB -o ../logs/conv%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 1000 CONV 0.01 emoving
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   5.16 sec.
+    Max Memory :                                 40 MB
+    Average Memory :                             40.00 MB
+    Total Requested Memory :                     20480.00 MB
+    Delta Memory :                               20440.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   24 sec.
+    Turnaround time :                            16 sec.
+
+The output (if any) is above this job summary.
+

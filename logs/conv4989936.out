@@ -1,0 +1,58 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+User defined signal 2
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-7>
+Subject: Job 4989936: <myJob> in cluster <dcc> Exited
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Fri Dec 27 10:35:30 2019
+Job was executed on host(s) <n-62-20-7>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Fri Dec 27 10:35:30 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Fri Dec 27 10:35:30 2019
+Terminated at Sat Dec 28 06:35:33 2019
+Results reported at Sat Dec 28 06:35:33 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 20:00
+#BSUB -R "rusage[mem=20GB]"
+#BSUB -o ../logs/conv%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 CONV 0.01 emoving
+
+------------------------------------------------------------
+
+TERM_RUNLIMIT: job killed after reaching LSF run time limit.
+Exited with exit code 140.
+
+Resource usage summary:
+
+    CPU time :                                   71810.00 sec.
+    Max Memory :                                 1909 MB
+    Average Memory :                             1905.47 MB
+    Total Requested Memory :                     20480.00 MB
+    Delta Memory :                               18571.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   72030 sec.
+    Turnaround time :                            72003 sec.
+
+The output (if any) is above this job summary.
+
