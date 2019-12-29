@@ -36,8 +36,8 @@ def trainer(epochs,data_set,lr, cttype="ct"):
     plot = False
 
     params = {
-        "num_epochs": 500,
-        "opt": "Adam",
+        "num_epochs": 200,
+        "opt": "SGD",
         "lr": 0.01
     }
     decay = 0.95
@@ -73,6 +73,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         if data_set == "MOONS":
             network = Net_MOONS(string=arch, in_features=2, num_classes=2, layers=layers)
             net = nn.Sequential(*layers)
+
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
                 net.cuda()
@@ -80,13 +81,17 @@ def trainer(epochs,data_set,lr, cttype="ct"):
         elif data_set == "MNIST":
             network = Net_MNIST(string=arch, in_features=784, num_classes=10, layers=layers)
             net = nn.Sequential(*layers)
+
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
+
                 net.cuda()
             accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         elif data_set == "CONV":
             network = Net_CONV(string=arch, img_size = 28, in_channels=1, num_classes=10, layers=layers)
+
             net = nn.Sequential(*layers)
+            print(net)
             if torch.cuda.is_available():
                 #print('#converting child to cuda-enabled', flush=True)
                 net.cuda()
@@ -105,6 +110,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
                 net.cuda()
             accuracy, particle_loss = train_m.particle_train(net, plot)
             particle_losses.append(particle_loss)
+
 
         # accuracy = train_m.train(net=net, train_batch_size=len(train_m.X_train), val_batch_size=len(train_m.X_val), plot=plot)
         accuracy = torch.tensor(accuracy)
@@ -155,6 +161,7 @@ def trainer(epochs,data_set,lr, cttype="ct"):
 
 
 def main():
+    
     epochs = 10
     net_type = "MOONS"
     lr = 0.01

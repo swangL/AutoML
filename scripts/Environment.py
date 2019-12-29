@@ -9,6 +9,8 @@ import math
 from torchvision import datasets
 from torchvision import transforms
 from helpers import get_variable
+import itertools
+
 
 torch.manual_seed(0)
 
@@ -211,6 +213,7 @@ class Train_model():
         data = np.load('mnist.npz')
 
         # Define interval used to split data into train, val and test
+
         interval_1 = 8000
         interval_2 = 500
 
@@ -301,6 +304,9 @@ class Train_model():
         elif self.params["opt"] is "SGD":
             optimizer = optim.SGD(net.parameters(), lr=self.params["lr"])
 
+
+        early_stop = True
+
         accuracies, losses, val_accuracies, val_losses, r2_scores, val_r2_scores = [], [], [], [], [], []
 
         train_loader = math.ceil(len(self.X_train)/train_batch_size)
@@ -313,6 +319,8 @@ class Train_model():
         es_limit = 30
 
         for e in range(self.params["num_epochs"]):
+            
+            batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
 
             batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
 
@@ -333,6 +341,7 @@ class Train_model():
                 acc = accuracy(preds, self.y_train[slce])
                 batch_accuracies.append(acc)
                 batch_losses.append(loss.cpu().data.numpy())
+
 
             # --------------- validate the model --------------- #
             for batch in range(val_loader):
@@ -360,9 +369,11 @@ class Train_model():
                     es_old_val = float(val_acc)
                 else:
                     es_new_val = float(val_acc)
+                    
                     if abs(es_old_val - es_new_val) <= es_range:
                         counter += 1
-                        if counter == es_limit: break
+                        if counter == es_limit: 
+                            break
                     else:
                         counter = 0
                         es_old_val = float(val_acc)
@@ -396,9 +407,11 @@ class Train_model():
 
             # --------------- train the model --------------- #
             for itr, (image_train, label_train) in enumerate(self.train_loader):
+
                 image_train, label_train = get_variable(image_train), get_variable(label_train)
                 optimizer.zero_grad()
                 preds = net(image_train)
+                # print("Length of train preds: ", len(preds))
                 loss = criterion(preds, label_train)
                 loss.backward()
                 optimizer.step()
@@ -409,8 +422,10 @@ class Train_model():
             net.eval()
             # --------------- validate the model --------------- #
             for itr, (image_val, label_val) in enumerate(self.val_loader):
+                
                 image_val, label_val = get_variable(image_val), get_variable(label_val)
                 val_preds = net(image_val)
+                # print("Length of val_preds: ", len(val_preds))
                 val_loss = criterion(val_preds, label_val)
                 val_acc = conv_accuracy(val_preds, label_val)
                 batch_val_accuracies.append(val_acc)
@@ -488,6 +503,7 @@ if test:
         batch_size_val = 64
         img_size = 28
         test_string = ['8', '5', 'ReLU', '64', '7', 'Sigmoid']
+
 
         train_m.conv_data(data_set_name="MNIST", batch_size_train=batch_size_train, batch_size_val=batch_size_val)
         network = Net_CONV(string=test_string, img_size=img_size, in_channels=1, num_classes=10, layers=layers)

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from helpers import get_variable
-
+ 
 
 #Find how to handle input
 
@@ -127,6 +127,7 @@ class Controller(nn.Module):
             loss = -(torch.mean(torch.sub(torch.mul(log_prob, get_variable(adv)),get_variable(entropy))))
             return loss
         return -torch.mean(torch.mul(log_prob, get_variable(adv)))
+
 
     # The sample here is then the whole episode where the agent takes x amounts of actions, at most num_blocks
     def sample(self):
