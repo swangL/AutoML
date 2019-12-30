@@ -1,0 +1,64 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+Traceback (most recent call last):
+  File "train.py", line 4, in <module>
+    from trainer import *
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/trainer.py", line 6, in <module>
+    from particletracking import *
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/particletracking.py", line 5, in <module>
+    import cv2
+ModuleNotFoundError: No module named 'cv2'
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-4>
+Subject: Job 4987507: <myJob> in cluster <dcc> Exited
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Thu Dec 26 10:59:58 2019
+Job was executed on host(s) <n-62-20-4>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Thu Dec 26 10:59:58 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Thu Dec 26 10:59:58 2019
+Terminated at Thu Dec 26 11:00:01 2019
+Results reported at Thu Dec 26 11:00:01 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/co%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 CONV 0.01 emoving
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   1.56 sec.
+    Max Memory :                                 -
+    Average Memory :                             -
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              -
+    Max Threads :                                -
+    Run time :                                   4 sec.
+    Turnaround time :                            3 sec.
+
+The output (if any) is above this job summary.
+

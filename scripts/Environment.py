@@ -142,21 +142,18 @@ class Net_CONV(nn.Module):
             elif s is 'Sigmoid':
                 layers.append(nn.Sigmoid())
             else:
-                if counter % 3 == 0:
+                if counter%3==0:
                     s_int = int(s)
                 else:
                     kernel_size = int(s)
-                    padding = (kernel_size - 1)//2
+                    img_size = compute_conv_dim(img_size,kernel_size,1)
                     layers.append(nn.Conv2d(in_channels=channels, out_channels=s_int, kernel_size=kernel_size, stride=stride, padding=padding))
                     channels = s_int
                     #image = (self.conv_out_height, self.conv_out_width)
             counter += 1
 
-        self.conv_out_height = image[0]
-        self.conv_out_width = image[1]
-
-        if self.conv_out_height == 0:
-            print('conv_out_height is zero')
+        self.conv_out_height = img_size
+        self.conv_out_width = img_size
 
         self.in_features = channels * self.conv_out_height * self.conv_out_width
 
@@ -319,7 +316,7 @@ class Train_model():
         es_limit = 30
 
         for e in range(self.params["num_epochs"]):
-            
+
             batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
 
             batch_accuracies, batch_losses, batch_val_accuracies, batch_val_losses = [], [], [], []
@@ -369,10 +366,10 @@ class Train_model():
                     es_old_val = float(val_acc)
                 else:
                     es_new_val = float(val_acc)
-                    
+
                     if abs(es_old_val - es_new_val) <= es_range:
                         counter += 1
-                        if counter == es_limit: 
+                        if counter == es_limit:
                             break
                     else:
                         counter = 0
@@ -422,7 +419,7 @@ class Train_model():
             net.eval()
             # --------------- validate the model --------------- #
             for itr, (image_val, label_val) in enumerate(self.val_loader):
-                
+
                 image_val, label_val = get_variable(image_val), get_variable(label_val)
                 val_preds = net(image_val)
                 # print("Length of val_preds: ", len(val_preds))

@@ -8,7 +8,9 @@ This github repository contains the implementation of NAS. This implementation i
 ## Running the scripts
 To run an iteration of NAS one can use the script train.py using the following format:
 
-  #### train.py {iterations} {dataset} {learning_rate} {control_arch}
+
+#### train.py {iterations} {dataset} {learning_rate} {control_arch}
+
 
 
 |variable | meaning | options |
@@ -19,5 +21,5 @@ To run an iteration of NAS one can use the script train.py using the following f
 |Control_arch|The architecture of the controller, this specifies wether to use entropy and the baselines| static, dynamic, moving, with entropy estatic, edynamic, emoving
 
 # Jupyter notebook
+In the top level of the folder there is an interactive jupyter notebook example, which showcases how we implemented the controller and such. This is a scraped version which only focus on Half Moon as dataset, and with entropy and moving baseline implemented.
 
-In the top level of the folder there is an interactive jupyter notebook example, which showcases how we implemented the controller and such. This is a scraped version which only focus on Half Moon as dataset, and with entropy and moving baseline implemented. 

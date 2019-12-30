@@ -1,0 +1,70 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+Traceback (most recent call last):
+  File "train.py", line 21, in <module>
+    accuracy_hist, loss_hist, probs_layer_1, depth, sample_networks = trainer(parameters["rollouts"],parameters["dataset"], parameters["lr"], parameters["controltype"])
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/trainer.py", line 86, in trainer
+    accuracy = train_m.train_conv(net=net, plot=plot)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/Environment.py", line 405, in train_conv
+    loss.backward()
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/tensor.py", line 166, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph)
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/autograd/__init__.py", line 99, in backward
+    allow_unreachable=True)  # allow_unreachable flag
+KeyboardInterrupt
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-2>
+Subject: Job 4988896: <myJob> in cluster <dcc> Exited
+
+Job <myJob> was submitted from host <gbarlogin2> by user <s174007> in cluster <dcc> at Thu Dec 26 23:35:22 2019
+Job was executed on host(s) <n-62-20-2>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Thu Dec 26 23:35:23 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Thu Dec 26 23:35:23 2019
+Terminated at Fri Dec 27 10:13:53 2019
+Results reported at Fri Dec 27 10:13:53 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 20:00
+#BSUB -R "rusage[mem=20GB]"
+#BSUB -o ../logs/conv%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 CONV 0.01 emoving
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   38199.81 sec.
+    Max Memory :                                 1928 MB
+    Average Memory :                             1925.95 MB
+    Total Requested Memory :                     20480.00 MB
+    Delta Memory :                               18552.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                10
+    Run time :                                   38335 sec.
+    Turnaround time :                            38311 sec.
+
+The output (if any) is above this job summary.
+

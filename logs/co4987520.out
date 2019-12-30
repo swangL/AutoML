@@ -1,0 +1,67 @@
+Loaded module: python3/3.6.2
+Loaded module: cuda/8.0
+Loaded module: cudnn/v7.0-prod-cuda8
+Running script...
+##converting Controller to cuda-enabled
+Traceback (most recent call last):
+  File "train.py", line 21, in <module>
+    accuracy_hist, loss_hist, probs_layer_1, depth, sample_networks = trainer(parameters["rollouts"],parameters["dataset"], parameters["lr"], parameters["controltype"])
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/trainer.py", line 80, in trainer
+    network = Net_CONV(string=arch, img_size = 28, in_channels=1, num_classes=10, layers=layers)
+  File "/zhome/b0/b/127184/Documents/Projects/AutoML/scripts/Environment.py", line 159, in __init__
+    if self.conv_out_height == 0:
+  File "/zhome/b0/b/127184/.local/lib/python3.6/site-packages/torch/nn/modules/module.py", line 585, in __getattr__
+    type(self).__name__, name))
+AttributeError: 'Net_CONV' object has no attribute 'conv_out_height'
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@n-62-20-2>
+Subject: Job 4987520: <myJob> in cluster <dcc> Exited
+
+Job <myJob> was submitted from host <n-62-27-18> by user <s174007> in cluster <dcc> at Thu Dec 26 11:05:09 2019
+Job was executed on host(s) <n-62-20-2>, in queue <gpuv100>, as user <s174007> in cluster <dcc> at Thu Dec 26 11:05:09 2019
+</zhome/b0/b/127184> was used as the home directory.
+</zhome/b0/b/127184/Documents/Projects/AutoML/scripts> was used as the working directory.
+Started at Thu Dec 26 11:05:09 2019
+Terminated at Thu Dec 26 11:05:15 2019
+Results reported at Thu Dec 26 11:05:15 2019
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -gpu "num=1"
+#BSUB -J myJob
+#BSUB -n 1
+#BSUB -W 10:00
+#BSUB -R "rusage[mem=6GB]"
+#BSUB -o ../logs/co%J.out
+
+module load python3/3.6.2
+module load cuda/8.0
+module load cudnn/v7.0-prod-cuda8
+
+echo "Running script..."
+python3 train.py 10000 CONV 0.01 emoving
+
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   4.82 sec.
+    Max Memory :                                 357 MB
+    Average Memory :                             357.00 MB
+    Total Requested Memory :                     6144.00 MB
+    Delta Memory :                               5787.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                8
+    Run time :                                   15 sec.
+    Turnaround time :                            6 sec.
+
+The output (if any) is above this job summary.
+

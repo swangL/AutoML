@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from helpers import get_variable
- 
+
 
 #Find how to handle input
 
@@ -41,6 +41,9 @@ activations_dict={
     1:"Tanh",
     2:"Sigmoid",
 }
+
+def compute_conv_dim(dim_size, kernel_size, padding):
+    return int(((dim_size - kernel_size + 2 * padding) / 1) + 1)
 
 num_blocks = 12
 hidden_dim = 50
@@ -145,6 +148,8 @@ class Controller(nn.Module):
 
         indx = 0
 
+        #for conv check if choices are valid if not request termination:
+        img_size = 28
         for block_id in range(1,num_blocks*2+1):
             #handle terminate argument
             #parse last hidden using overwrite
@@ -169,11 +174,20 @@ class Controller(nn.Module):
                 if choice%3==0:
                     arch.append(activations_dict[int(action)])
                     indx = block_id
-                elif choice%2==0: #should be %3 == 1 i believe
-                    arch.append(kernels_dict[int(action)])
+                elif choice%3==2: #should be %3 == 1 i believe
+                    kernel_size= kernels_dict[int(action)]
+                    #new img_size
+                    img_size=compute_conv_dim(img_size,kernel_size,1)
+                    if img_size<=0:
+                        self.reward-=0.1
+                        break
+                    else:
+                        arch.append(kernel_size)
                 else:
                     value = channels_dict[int(action)]
                     if value=="term":
+                        if block_id==1:
+                            self.reward-=1
                         break
                     else:
                         arch.append(value)
@@ -192,8 +206,7 @@ class Controller(nn.Module):
         return arch, logProb_list
 
 # Test the class here:
-test_class = False
-if test_class:
+if __name__=="__main__":
     net = Controller(0.1, True)
     if torch.cuda.is_available():
         print('##converting network to cuda-enabled')
@@ -202,4 +215,4 @@ if test_class:
     print("Network archtecture:")
     print(arch)
     print()
-    print("The prob for each pick: ", l)
+    #print("The prob for each pick: ", l)
